@@ -1,3 +1,4 @@
 <Solution>
   <Project Path="TalentoInterno.API/TalentoInterno.API.csproj" />
+  <Project Path="TalentoInterno.CORE/TalentoInterno.CORE.csproj" Id="ab4fdaa6-c5c8-40b7-82e5-40250c8b788f" />
 </Solution>
