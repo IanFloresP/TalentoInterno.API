@@ -1,8 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
-using TalentoInterno.CORE.Core.Entities;
 
-namespace TalentoInterno.CORE.Infrastructure.Data;
+namespace TalentoInterno.CORE.Core.Entities;
 
 public partial class Vacante
 {
