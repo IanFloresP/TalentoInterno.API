@@ -38,6 +38,10 @@ builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
 builder.Services.AddScoped<ITipoSkillService, TipoSkillService>();
 builder.Services.AddScoped<ITipoSkillRepository, TipoSkillRepository>();
 
+// Register new departamento services
+builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
+builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
