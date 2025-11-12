@@ -1,4 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
+using TalentoInterno.CORE.Core.Interfaces;
+using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.Entities;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -6,31 +9,53 @@ namespace TalentoInterno.API.Controllers;
 [Route("api/[controller]")]
 public class RolController : ControllerBase
 {
-    [HttpGet]
-    public IActionResult GetAll()
+    private readonly IRolService _rolService;
+
+    public RolController(IRolService rolService)
     {
-        // Implement logic for HU-14
-        return Ok();
+        _rolService = rolService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var roles = await _rolService.GetAllRolesAsync();
+        var dto = roles.Select(r => new RolDto { RolId = r.RolId, Nombre = r.Nombre });
+        return Ok(dto);
+    }
+
+    [HttpGet("{id}")]
+    public async Task<IActionResult> GetById(int id)
+    {
+        var rol = await _rolService.GetRoleByIdAsync(id);
+        if (rol == null) return NotFound();
+        return Ok(new RolDto { RolId = rol.RolId, Nombre = rol.Nombre });
     }
 
     [HttpPost]
-    public IActionResult Create()
+    public async Task<IActionResult> Create([FromBody] RolDto rolDto)
     {
-        // Implement logic for HU-14
-        return Ok();
+        var rol = new Rol { Nombre = rolDto.Nombre };
+        await _rolService.CreateRoleAsync(rol);
+        return CreatedAtAction(nameof(GetById), new { id = rol.RolId }, rolDto);
     }
 
     [HttpPut("{id}")]
-    public IActionResult Update(int id)
+    public async Task<IActionResult> Update(int id, [FromBody] RolDto rolDto)
     {
-        // Implement logic for HU-14
-        return Ok();
+        var existing = await _rolService.GetRoleByIdAsync(id);
+        if (existing == null) return NotFound();
+        existing.Nombre = rolDto.Nombre;
+        await _rolService.UpdateRoleAsync(existing);
+        return NoContent();
     }
 
     [HttpDelete("{id}")]
-    public IActionResult Delete(int id)
+    public async Task<IActionResult> Delete(int id)
     {
-        // Implement logic for HU-14
-        return Ok();
+        var existing = await _rolService.GetRoleByIdAsync(id);
+        if (existing == null) return NotFound();
+        await _rolService.DeleteRoleAsync(id);
+        return NoContent();
     }
 }

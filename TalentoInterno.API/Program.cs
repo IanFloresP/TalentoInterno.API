@@ -46,6 +46,13 @@ builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
 
+// Register vacante requirement repo used by ColaboradorSkillService
+builder.Services.AddScoped<IVacanteSkillReqRepository, VacanteSkillReqRepository>();
+
+// Register rol services
+builder.Services.AddScoped<IRolService, RolService>();
+builder.Services.AddScoped<IRolRepository, RolRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
