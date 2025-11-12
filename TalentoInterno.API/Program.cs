@@ -42,6 +42,10 @@ builder.Services.AddScoped<ITipoSkillRepository, TipoSkillRepository>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
 builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
 
+// Register colaborador/colaboradorSkill services
+builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
