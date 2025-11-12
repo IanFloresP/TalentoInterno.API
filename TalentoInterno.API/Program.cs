@@ -1,11 +1,14 @@
+using Microsoft.EntityFrameworkCore;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Services;
+using TalentoInterno.CORE.Infrastructure.Data;
 using TalentoInterno.CORE.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
 // Add services to the container.
-
+var _configuration = builder.Configuration;
+var connectionString = _configuration.GetConnectionString("DevConnection");
 builder.Services.AddControllers();
 // Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
 builder.Services.AddOpenApi();
@@ -38,14 +41,28 @@ builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
 builder.Services.AddScoped<ITipoSkillService, TipoSkillService>();
 builder.Services.AddScoped<ITipoSkillRepository, TipoSkillRepository>();
 
-// Register new departamento services
-builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
-builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
+builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
+
+builder.Services.AddDbContext<TalentoInternooContext>(
+    options => options.UseSqlServer(connectionString));
 
 // Register colaborador/colaboradorSkill services
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
 
+builder.Services.AddControllers();
+//Add CORS policy
+builder.Services.AddCors(options =>
+{
+    options.AddPolicy("AllowAll", builder =>
+    {
+        builder//.WithOrigins("http://localhost:9000/#/login")
+        .AllowAnyOrigin()
+        .AllowAnyMethod()
+        .AllowAnyHeader();
+    });
+});
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.
@@ -57,7 +74,7 @@ if (app.Environment.IsDevelopment())
 app.UseHttpsRedirection();
 
 app.UseAuthorization();
-
+app.UseCors("AllowAll");
 app.MapControllers();
 
 app.Run();
