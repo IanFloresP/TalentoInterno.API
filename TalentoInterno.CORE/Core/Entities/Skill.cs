@@ -1,6 +1,5 @@
 ﻿using System;
 using System.Collections.Generic;
-using TalentoInterno.CORE.Infrastructure.Data;
 
 namespace TalentoInterno.CORE.Core.Entities;
 

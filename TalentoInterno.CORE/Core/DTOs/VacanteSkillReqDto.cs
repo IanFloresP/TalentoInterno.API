@@ -1,0 +1,10 @@
+namespace TalentoInterno.CORE.Core.DTOs;
+
+public class VacanteSkillReqDto
+{
+    public int VacanteId { get; set; }
+    public int SkillId { get; set; }
+    public byte NivelDeseado { get; set; }
+    public decimal? Peso { get; set; }
+    public bool? Critico { get; set; }
+}
