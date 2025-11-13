@@ -1,4 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
+using TalentoInterno.CORE.Core.Interfaces;
+using TalentoInterno.CORE.Core.DTOs;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -6,10 +8,18 @@ namespace TalentoInterno.API.Controllers;
 [Route("api/[controller]")]
 public class SkillController : ControllerBase
 {
-    [HttpGet]
-    public IActionResult GetAll()
+    private readonly ISkillService _skillService;
+
+    public SkillController(ISkillService skillService)
     {
-        // Implement logic for HU-11, HU-12
-        return Ok();
+        _skillService = skillService;
+    }
+
+    [HttpGet]
+    public async Task<IActionResult> GetAll()
+    {
+        var skills = await _skillService.GetAllSkillsAsync();
+        var dto = skills.Select(s => new { s.SkillId, s.Nombre, s.Critico, s.TipoSkillId });
+        return Ok(dto);
     }
 }
