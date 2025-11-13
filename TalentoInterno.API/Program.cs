@@ -47,6 +47,10 @@ builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 builder.Services.AddDbContext<TalentoInternooContext>(
     options => options.UseSqlServer(connectionString));
 
+// Register colaborador/colaboradorSkill services
+builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+
 builder.Services.AddControllers();
 //Add CORS policy
 builder.Services.AddCors(options =>
