@@ -44,6 +44,23 @@ builder.Services.AddScoped<ITipoSkillRepository, TipoSkillRepository>();
 builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
 builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 
+builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
+
+builder.Services.AddScoped<IRolRepository, RolRepository>();
+builder.Services.AddScoped<IRolService, RolService>();
+
+builder.Services.AddScoped<IVacanteRepository, VacanteRepository>();
+builder.Services.AddScoped<IVacanteService, VacanteService>();
+
+builder.Services.AddScoped<IVacanteSkillReqRepository, VacanteSkillReqRepository>();
+builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
+
+builder.Services.AddScoped<IMatchingService, MatchingService>();
+
+builder.Services.AddScoped<IExportacionService, ExportacionService>();
+
+
 builder.Services.AddDbContext<TalentoInternooContext>(
     options => options.UseSqlServer(connectionString));
 

@@ -1,13 +1,14 @@
-﻿using TalentoInterno.CORE.Core.Entities;
+﻿using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.Entities;
 
 namespace TalentoInterno.CORE.Core.Interfaces
 {
     public interface IColaboradorService
     {
-        Task CreateColaboradorAsync(Colaborador colaborador);
+        Task<Colaborador> CreateColaboradorAsync(ColaboradorDTO colaboradorDTO);
         Task DeleteColaboradorAsync(int id);
-        Task<IEnumerable<Colaborador>> GetAllColaboradoresAsync();
-        Task<Colaborador?> GetColaboradorByIdAsync(int id);
-        Task UpdateColaboradorAsync(Colaborador colaborador);
+        Task<IEnumerable<ColaboradorDTO>> GetAllColaboradoresAsync();
+        Task<ColaboradorDTO?> GetColaboradorByIdAsync(int id);
+        Task UpdateColaboradorAsync(ColaboradorDTO colaboradorDTO);
     }
 }

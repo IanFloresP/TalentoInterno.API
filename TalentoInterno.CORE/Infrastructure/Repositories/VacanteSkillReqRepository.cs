@@ -45,4 +45,8 @@ public class VacanteSkillReqRepository : IVacanteSkillReqRepository
             await _context.SaveChangesAsync();
         }
     }
+    public async Task SaveChangesAsync()
+    {
+        await _context.SaveChangesAsync();
+    }
 }

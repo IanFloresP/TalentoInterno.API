@@ -1,11 +1,11 @@
 using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.DTOs; // Asegúrate de que este using esté presente y que VacanteSkillReqDto exista en este espacio de nombres
+using TalentoInterno.CORE.Core.DTOs; // ¡Aquí están los DTOs correctos!
 
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/VacanteSkillReq")] // Ruta base
 public class VacanteSkillReqController : ControllerBase
 {
     private readonly IVacanteSkillReqService _vacanteSkillReqService;
@@ -15,24 +15,41 @@ public class VacanteSkillReqController : ControllerBase
         _vacanteSkillReqService = vacanteSkillReqService;
     }
 
-    [HttpGet("{vacanteId}/skills")]
-    public IActionResult GetSkills(int vacanteId)
-    {
-        // Implement logic for HU-09
-        return Ok();
-    }
+    // -----------------------------------------------------------------
+    // NOTA: El [HttpGet("{vacanteId}/skills")] (HU-09) 
+    // ya lo implementamos en 'VacanteController'. 
+    // No debe estar aquí también para evitar conflictos.
+    // -----------------------------------------------------------------
 
+
+    // --- HU-06: Agregar habilidad requerida a una vacante ---
     [HttpPost("{vacanteId}/skills")]
-    public IActionResult AddSkill(int vacanteId, [FromBody] VacanteSkillReqDto skillDto)
+    public async Task<IActionResult> AddSkillToVacante(int vacanteId, [FromBody] VacanteSkillReqCreateDTO dto)
     {
-        // Implement logic for HU-09
-        return Ok();
+        try
+        {
+            await _vacanteSkillReqService.AddSkillToVacanteAsync(vacanteId, dto);
+            return Ok(new { message = "Habilidad agregada a la vacante." });
+        }
+        catch (Exception ex)
+        {
+            // (Manejo de error, ej: si la skill ya existe en la vacante)
+            return Conflict(new { message = ex.Message });
+        }
     }
 
+    // --- HU-06: Actualizar nivel/peso de habilidad requerida ---
     [HttpPut("{vacanteId}/skills/{skillId}")]
-    public IActionResult UpdateSkill(int vacanteId, int skillId, [FromBody] VacanteSkillReqDto skillDto)
+    public async Task<IActionResult> UpdateSkillOnVacante(int vacanteId, int skillId, [FromBody] VacanteSkillReqUpdateDTO dto)
     {
-        // Implement logic for HU-09
-        return Ok();
+        try
+        {
+            await _vacanteSkillReqService.UpdateSkillOnVacanteAsync(vacanteId, skillId, dto);
+            return NoContent(); // 204 No Content (Éxito)
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 }

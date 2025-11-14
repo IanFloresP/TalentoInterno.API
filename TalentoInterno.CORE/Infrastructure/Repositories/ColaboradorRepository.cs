@@ -16,12 +16,27 @@ public class ColaboradorRepository : IColaboradorRepository
 
     public async Task<IEnumerable<Colaborador>> GetAllAsync()
     {
-        return await _context.Colaborador.ToListAsync();
+        return await _context.Colaborador
+            .Include(c => c.Area)
+            .ThenInclude(a => a.Departamento)
+            .Include(c => c.Departamento)
+            .Include(c => c.Rol)
+            .Include(c => c.ColaboradorCertificacion)
+                .ThenInclude(cc => cc.Certificacion) // <-- Arregla el próximo error
+            .Include(c => c.ColaboradorSkill)
+                .ThenInclude(cs => cs.Skill)         // <-- Arregla tu error actual
+            .ToListAsync();
     }
 
     public async Task<Colaborador?> GetByIdAsync(int id)
     {
-        return await _context.Colaborador.FindAsync(id);
+        return await _context.Colaborador
+            .Include(c => c.Area)
+            .Include(c => c.Departamento)
+            .Include(c => c.Rol)
+            .Include(c => c.ColaboradorCertificacion)
+            .Include(c => c.ColaboradorSkill)
+            .FirstOrDefaultAsync(c => c.ColaboradorId == id);
     }
 
     public async Task AddAsync(Colaborador colaborador)

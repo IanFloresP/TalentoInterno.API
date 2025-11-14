@@ -14,14 +14,25 @@ public class VacanteRepository : IVacanteRepository
         _context = context;
     }
 
+
+
     public async Task<IEnumerable<Vacante>> GetAllAsync()
     {
-        return await _context.Vacante.ToListAsync();
+        return await _context.Vacante
+            .Include(v => v.Perfil)     // <-- ¡AÑADE ESTO!
+            .Include(v => v.Urgencia)   // <-- ¡AÑADE ESTO!
+            .ToListAsync();
     }
+
 
     public async Task<Vacante?> GetByIdAsync(int id)
     {
-        return await _context.Vacante.FindAsync(id);
+        return await _context.Vacante
+            .Include(v => v.Perfil)
+            .Include(v => v.Cuenta)
+            .Include(v => v.Proyecto)
+            .Include(v => v.Urgencia)
+            .FirstOrDefaultAsync(v => v.VacanteId == id);
     }
 
     public async Task AddAsync(Vacante vacante)
