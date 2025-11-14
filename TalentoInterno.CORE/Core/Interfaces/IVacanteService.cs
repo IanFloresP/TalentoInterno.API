@@ -1,14 +1,12 @@
-﻿using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Entities;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IVacanteService
 {
-    public interface IVacanteService
-    {
-        Task<Vacante> CreateVacanteAsync(VacanteCreateDTO dto);
-        Task DeleteVacanteAsync(int id);
-        Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync();
-        Task<VacanteGetDTO?> GetVacanteByIdAsync(int id);
-        Task UpdateVacanteAsync(int id, VacanteUpdateDTO dto);
-    }
+    Task<IEnumerable<Vacante>> GetAllVacantesAsync();
+    Task<Vacante?> GetVacanteByIdAsync(int id);
+    Task CreateVacanteAsync(Vacante vacante);
+    Task UpdateVacanteAsync(Vacante vacante);
+    Task DeleteVacanteAsync(int id);
 }

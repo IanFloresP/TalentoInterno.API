@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using Microsoft.EntityFrameworkCore;
 using TalentoInterno.CORE.Core.Entities;
-using Microsoft.EntityFrameworkCore.Proxies;
 
 namespace TalentoInterno.CORE.Infrastructure.Data;
 
@@ -37,7 +36,7 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<Proyecto> Proyecto { get; set; }
 
-    public virtual DbSet<Rol> Rol { get; set; } 
+    public virtual DbSet<Rol> Rol { get; set; }
 
     public virtual DbSet<Skill> Skill { get; set; }
 
@@ -62,13 +61,6 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
-
-            // Configuración de la relación con Departamento
-            entity.HasOne(a => a.Departamento)
-                .WithMany(d => d.Area)
-                .HasForeignKey(a => a.DepartamentoId)
-                .OnDelete(DeleteBehavior.ClientSetNull)
-                .HasConstraintName("FK_Area_Departamentos");
         });
 
         modelBuilder.Entity<Certificacion>(entity =>

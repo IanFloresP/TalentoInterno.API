@@ -1,13 +1,12 @@
-﻿using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Entities;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface ISkillRepository
 {
-    public interface ISkillRepository
-    {
-        Task AddAsync(Skill skill);
-        Task DeleteAsync(int id);
-        Task<IEnumerable<Skill>> GetAllAsync();
-        Task<Skill?> GetByIdAsync(int id);
-        Task UpdateAsync(Skill skill);
-    }
+    Task<IEnumerable<Skill>> GetAllAsync();
+    Task<Skill?> GetByIdAsync(int id);
+    Task AddAsync(Skill skill);
+    Task UpdateAsync(Skill skill);
+    Task DeleteAsync(int id);
 }

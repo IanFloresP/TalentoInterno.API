@@ -16,22 +16,13 @@ public class SkillRepository : ISkillRepository
 
     public async Task<IEnumerable<Skill>> GetAllAsync()
     {
-        // --- ¡CAMBIO AQUÍ! ---
-        return await _context.Skill
-            .Include(s => s.TipoSkill) // Incluye la tabla TipoSkill
-            .ToListAsync();
+        return await _context.Skill.ToListAsync();
     }
 
     public async Task<Skill?> GetByIdAsync(int id)
     {
-        // --- ¡CAMBIO AQUÍ! ---
-        return await _context.Skill
-            .Include(s => s.TipoSkill) // Incluye la tabla TipoSkill
-            .FirstOrDefaultAsync(s => s.SkillId == id);
-
-        // Nota: .FindAsync(id) no permite .Include(), por eso lo cambiamos
+        return await _context.Skill.FindAsync(id);
     }
-
 
     public async Task AddAsync(Skill skill)
     {

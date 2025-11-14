@@ -1,13 +1,12 @@
-﻿using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Entities;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IVacanteRepository
 {
-    public interface IVacanteRepository
-    {
-        Task AddAsync(Vacante vacante);
-        Task DeleteAsync(int id);
-        Task<IEnumerable<Vacante>> GetAllAsync();
-        Task<Vacante?> GetByIdAsync(int id);
-        Task UpdateAsync(Vacante vacante);
-    }
+    Task<IEnumerable<Vacante>> GetAllAsync();
+    Task<Vacante?> GetByIdAsync(int id);
+    Task AddAsync(Vacante vacante);
+    Task UpdateAsync(Vacante vacante);
+    Task DeleteAsync(int id);
 }

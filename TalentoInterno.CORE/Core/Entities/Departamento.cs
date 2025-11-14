@@ -10,5 +10,4 @@ public partial class Departamento
     public string Nombre { get; set; } = null!;
 
     public virtual ICollection<Colaborador> Colaborador { get; set; } = new List<Colaborador>();
-    public virtual ICollection<Area> Area { get; set; } // Agregar esta línea para corregir CS1061
 }

@@ -1,6 +1,4 @@
 using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.DTOs;
-using TalentoInterno.CORE.Core.Entities;
 using TalentoInterno.CORE.Core.Interfaces;
 
 namespace TalentoInterno.API.Controllers;
@@ -23,14 +21,6 @@ public class ColaboradorController : ControllerBase
         return Ok(colaboradores);
     }
 
-    [HttpGet("activos")]
-    public async Task<IActionResult> GetColaboradoresActivos()
-    {
-        var colaboradores = await _colaboradorService.GetAllColaboradoresAsync();
-        var activos = colaboradores.Where(c => c.Activo == true);
-        return Ok(activos);
-    }
-
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
@@ -45,39 +35,18 @@ public class ColaboradorController : ControllerBase
     [HttpGet("{id}/rol")]
     public async Task<IActionResult> GetRol(int id)
     {
+        // El método correcto según la interfaz es GetColaboradorByIdAsync
         var colaborador = await _colaboradorService.GetColaboradorByIdAsync(id);
         if (colaborador == null)
         {
             return NotFound($"No se encontró un colaborador con el ID {id}.");
         }
-        var rol = colaborador.RolNombre;
+        // Suponiendo que la propiedad Rol existe en el modelo Colaborador
+        var rol = colaborador.Rol;
         if (rol == null)
         {
             return NotFound($"No se encontró un rol para el colaborador con el ID {id}.");
         }
         return Ok(rol);
-    }
-
-    [HttpPost]
-    // ¡CAMBIO AQUÍ! Recibe ColaboradorCreateDTO
-    public async Task<IActionResult> CreateColaborador([FromBody] ColaboradorDTO colaboradorDTO)
-    {
-        // ¡CAMBIO AQUÍ! Llama al nuevo método del servicio
-        var nuevoColaborador = await _colaboradorService.CreateColaboradorAsync(colaboradorDTO);
-
-        // Esta respuesta (201 Created) es la correcta y usa el ID del colaborador recién creado.
-        return CreatedAtAction(nameof(GetById), new { id = nuevoColaborador.ColaboradorId }, nuevoColaborador);
-    }
-
-    [HttpPut("{id}")]
-    public async Task<IActionResult> UpdateColaborador(int id, [FromBody] ColaboradorDTO colaboradorDTO)
-    {
-        if (id != colaboradorDTO.ColaboradorId)
-        {
-            return BadRequest("El ID del colaborador no coincide con el ID proporcionado.");
-        }
-
-        await _colaboradorService.UpdateColaboradorAsync(colaboradorDTO);
-        return NoContent();
     }
 }
