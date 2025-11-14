@@ -52,8 +52,6 @@ public class VacanteSkillReqRepository : IVacanteSkillReqRepository
             _context.VacanteSkillReq.Remove(req);
         }
     }
-
-    // --- Método para guardar cambios ---
     public async Task SaveChangesAsync()
     {
         await _context.SaveChangesAsync();

@@ -6,12 +6,13 @@ using System.Threading.Tasks;
 
 namespace TalentoInterno.CORE.Core.DTOs
 {
-    public class AreaDTO
+    public class AreaDto
     {
+
         public int AreaId { get; set; }
         public string Nombre { get; set; } = null!;
-        public int? DepartamentoId { get; set; } // Opcional, si quieres mostrar a qué depto. pertenece
+        public int? DepartamentoId { get; set; } = null!;
     }
-}
 
+}
 

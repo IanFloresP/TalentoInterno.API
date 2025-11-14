@@ -1,6 +1,7 @@
 ﻿using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.Services;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -44,12 +45,29 @@ public class ExportacionController : ControllerBase
         var matchData = await _colabSkillService.GetMatchDetailsAsync(colaboradorId, vacanteId);
         if (matchData == null) return NotFound("Datos del match no encontrados.");
 
-        var colaboradorData = await _colaboradorService.GetColaboradorByIdAsync(colaboradorId);
-        if (colaboradorData == null) return NotFound("Colaborador no encontrado.");
+        var colaboradorEntidad = await _colaboradorService.GetColaboradorByIdAsync(colaboradorId); // 1. Obtenemos la ENTIDAD
+        if (colaboradorEntidad == null) return NotFound("Colaborador no encontrado.");
 
-        byte[] fileBytes = await _exportacionService.GenerarMatchPdf(matchData, colaboradorData);
+        // --- 2. MAPEO MANUAL: Convertimos la Entidad a un DTO ---
+        var colaboradorDTO = new ColaboradorDTO
+        {
+            ColaboradorId = colaboradorEntidad.ColaboradorId,
+            Nombres = colaboradorEntidad.Nombres,
+            Apellidos = colaboradorEntidad.Apellidos,
+            Email = colaboradorEntidad.Email,
+            RolId = colaboradorEntidad.RolId,
+            AreaId = colaboradorEntidad.AreaId,
+            DepartamentoId = colaboradorEntidad.DepartamentoId,
+            DisponibleMovilidad = colaboradorEntidad.DisponibleMovilidad,
+            Activo = colaboradorEntidad.Activo,
+            FechaAlta = colaboradorEntidad.FechaAlta
+            // (No incluimos las listas de navegación como 'Skills' o 'Certificaciones'
+            // porque el PDF solo necesita los datos del colaborador)
+        };
 
-        string fileName = $"Match_{colaboradorData.Nombres}_Vac{vacanteId}.pdf";
+        byte[] fileBytes = await _exportacionService.GenerarMatchPdf(matchData, colaboradorDTO);
+
+        string fileName = $"Match_{colaboradorDTO.Nombres}_Vac{vacanteId}.pdf";
         string mimeType = "application/pdf";
         return File(fileBytes, mimeType, fileName);
     }

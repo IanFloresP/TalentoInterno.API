@@ -1,5 +1,5 @@
 // --- Importaciones necesarias ---
-using Couchbase.Protostellar.KV.V1;
+
 using Microsoft.EntityFrameworkCore;
 using System.Text.Json.Serialization;
 using TalentoInterno.CORE.Core.Interfaces;
@@ -31,36 +31,38 @@ builder.Services.AddDbContext<TalentoInternooContext>(options =>
 builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
 builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 
-// Servicios de ColaboradorSkill
-builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
-builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
 
-// Servicios de Skill
-builder.Services.AddScoped<ISkillRepository, SkillRepository>();
-builder.Services.AddScoped<ISkillService, SkillService>();
-
-// Servicios de Rol
 builder.Services.AddScoped<IRolRepository, RolRepository>();
 builder.Services.AddScoped<IRolService, RolService>();
 
-// Servicios de Vacante
 builder.Services.AddScoped<IVacanteRepository, VacanteRepository>();
 builder.Services.AddScoped<IVacanteService, VacanteService>();
 
-// Servicios de VacanteSkillReq
 builder.Services.AddScoped<IVacanteSkillReqRepository, VacanteSkillReqRepository>();
 builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
+
+builder.Services.AddScoped<IAreaRepository, AreaRepository>();
+builder.Services.AddScoped<IAreaService, AreaService>();
 
 builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
 builder.Services.AddScoped<INivelDominioService, NivelDominioService>();
 
-// Servicios de Lógica de Negocio (Matching, KPI, Exportación)
+builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
+
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 
 builder.Services.AddScoped<IExportacionService, ExportacionService>();
 
-// --- 4. Configuración de CORS (¡Importante para tu Frontend!) ---
-// Permite que tu app Quasar/Vue (ej: en localhost:9000) hable con tu API (en localhost:5066)
+
+builder.Services.AddControllers();
+//Add CORS policy
 builder.Services.AddCors(options =>
 {
     options.AddPolicy("AllowFrontend",

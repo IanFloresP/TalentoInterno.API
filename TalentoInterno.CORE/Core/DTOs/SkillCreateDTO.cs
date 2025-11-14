@@ -10,5 +10,6 @@ public class SkillCreateDTO
     [Required]
     public byte TipoSkillId { get; set; }
 
+    public string? TipoSkillNombre { get; set; }
     public bool? Critico { get; set; }
 }

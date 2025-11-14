@@ -113,7 +113,7 @@ public class CatalogoController : ControllerBase
     public async Task<IActionResult> GetAreas()
     {
         var data = await _context.Area
-            .Select(a => new AreaDTO
+            .Select(a => new AreaDto
             {
                 AreaId = a.AreaId,
                 Nombre = a.Nombre,
