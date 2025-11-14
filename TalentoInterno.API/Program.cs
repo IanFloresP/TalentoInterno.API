@@ -1,4 +1,7 @@
+// --- Importaciones necesarias ---
+
 using Microsoft.EntityFrameworkCore;
+using System.Text.Json.Serialization;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Services;
 using TalentoInterno.CORE.Infrastructure.Data;
@@ -6,46 +9,57 @@ using TalentoInterno.CORE.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
-var _configuration = builder.Configuration;
-var connectionString = _configuration.GetConnectionString("DevConnection");
-builder.Services.AddControllers();
-// Learn more about configuring OpenAPI at https://aka.ms/aspnet/openapi
-builder.Services.AddOpenApi();
+// --- 1. Registro de Servicios de .NET ---
 
-// Dependency Injection Configuration
-builder.Services.AddScoped<IVacanteService, VacanteService>();
-builder.Services.AddScoped<IVacanteRepository, VacanteRepository>();
+// Añade controladores y configura JSON para ignorar ciclos (útil con Entity Framework)
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
 
-builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
-builder.Services.AddScoped<IVacanteSkillReqRepository, VacanteSkillReqRepository>();
+builder.Services.AddEndpointsApiExplorer();
 
-builder.Services.AddScoped<ICuentaService, CuentaService>();
-builder.Services.AddScoped<ICuentaRepository, CuentaRepository>();
 
-builder.Services.AddScoped<IProyectoService, ProyectoService>();
-builder.Services.AddScoped<IProyectoRepository, ProyectoRepository>();
+// --- 2. Registro del DbContext (Conexión a BD) ---
+builder.Services.AddDbContext<TalentoInternooContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DevConnection")));
+// Asegúrate de que "DefaultConnection" exista en tu appsettings.json
 
-builder.Services.AddScoped<IPerfilService, PerfilService>();
-builder.Services.AddScoped<IPerfilRepository, PerfilRepository>();
+// --- 3. Registro de tus Repositorios y Servicios (Inyección de Dependencias) ---
 
-builder.Services.AddScoped<IUrgenciaService, UrgenciaService>();
-builder.Services.AddScoped<IUrgenciaRepository, UrgenciaRepository>();
-
-builder.Services.AddScoped<ISkillService, SkillService>();
-builder.Services.AddScoped<ISkillRepository, SkillRepository>();
-
-builder.Services.AddScoped<INivelDominioService, NivelDominioService>();
-builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
-
-builder.Services.AddScoped<ITipoSkillService, TipoSkillService>();
-builder.Services.AddScoped<ITipoSkillRepository, TipoSkillRepository>();
-
+// Servicios de Colaborador
 builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
 builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 
-builder.Services.AddDbContext<TalentoInternooContext>(
-    options => options.UseSqlServer(connectionString));
+builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
+builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
+
+builder.Services.AddScoped<IRolRepository, RolRepository>();
+builder.Services.AddScoped<IRolService, RolService>();
+
+builder.Services.AddScoped<IVacanteRepository, VacanteRepository>();
+builder.Services.AddScoped<IVacanteService, VacanteService>();
+
+builder.Services.AddScoped<IVacanteSkillReqRepository, VacanteSkillReqRepository>();
+builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
+
+builder.Services.AddScoped<IAreaRepository, AreaRepository>();
+builder.Services.AddScoped<IAreaService, AreaService>();
+
+builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
+builder.Services.AddScoped<INivelDominioService, NivelDominioService>();
+
+builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+
+builder.Services.AddScoped<ISkillRepository, SkillRepository>();
+builder.Services.AddScoped<ISkillService, SkillService>();
+
+
+builder.Services.AddScoped<IMatchingService, MatchingService>();
+
+builder.Services.AddScoped<IExportacionService, ExportacionService>();
+
 
 // Register colaborador/colaboradorSkill services
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
@@ -55,26 +69,27 @@ builder.Services.AddControllers();
 //Add CORS policy
 builder.Services.AddCors(options =>
 {
-    options.AddPolicy("AllowAll", builder =>
-    {
-        builder//.WithOrigins("http://localhost:9000/#/login")
-        .AllowAnyOrigin()
-        .AllowAnyMethod()
-        .AllowAnyHeader();
-    });
+    options.AddPolicy("AllowFrontend",
+        policy =>
+        {
+            policy.WithOrigins("http://localhost:9000") // <-- Cambia esto por la URL de tu frontend
+                  .AllowAnyHeader()
+                  .AllowAnyMethod();
+        });
 });
+
+// --- Construcción de la App ---
 var app = builder.Build();
 
-// Configure the HTTP request pipeline.
-if (app.Environment.IsDevelopment())
-{
-    app.MapOpenApi();
-}
+
 
 app.UseHttpsRedirection();
 
+// Usa la política de CORS que definimos
+app.UseCors("AllowFrontend");
+
 app.UseAuthorization();
-app.UseCors("AllowAll");
+
 app.MapControllers();
 
 app.Run();

@@ -1,8 +1,6 @@
-using TalentoInterno.CORE.Core.Entities;
+﻿using TalentoInterno.CORE.Core.DTOs;
 
-namespace TalentoInterno.CORE.Core.Interfaces;
-
-public interface IVacanteSkillReqService
+namespace TalentoInterno.CORE.Core.Interfaces
 {
     Task<IEnumerable<VacanteSkillReq>> GetAllVacanteSkillReqsAsync();
     Task<VacanteSkillReq?> GetVacanteSkillReqByIdAsync(int vacanteId, int skillId);

@@ -12,4 +12,9 @@ public class ColaboradorDTO
     public bool? DisponibleMovilidad { get; set; }
     public bool? Activo { get; set; }
     public DateOnly? FechaAlta { get; set; }
+    public string? AreaNombre { get; set; }
+    public string? DepartamentoNombre { get; set; }
+    public string? RolNombre { get; set; }
+    public IEnumerable<string>? Certificaciones { get; set; }
+    public IEnumerable<string>? Skills { get; set; }
 }

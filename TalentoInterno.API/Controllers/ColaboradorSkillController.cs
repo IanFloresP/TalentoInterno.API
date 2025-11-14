@@ -5,7 +5,7 @@ using TalentoInterno.CORE.Core.DTOs;
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
-[Route("api/[controller]")]
+[Route("api/ColaboradorSkill")]
 public class ColaboradorSkillController : ControllerBase
 {
     private readonly IColaboradorSkillService _colaboradorSkillService;

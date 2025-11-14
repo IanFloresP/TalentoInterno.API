@@ -1,10 +1,15 @@
+ï»¿using System.ComponentModel.DataAnnotations;
+
 namespace TalentoInterno.CORE.Core.DTOs;
 
-public class SkillDto
+public class SkillCreateDTO
 {
-    public int SkillId { get; set; }
+    [Required]
     public string Nombre { get; set; } = null!;
+
+    [Required]
     public byte TipoSkillId { get; set; }
-    public string? TipoSkillNombre { get; set; } // ¡NUEVO CAMPO!
+
+    public string? TipoSkillNombre { get; set; }
     public bool? Critico { get; set; }
 }

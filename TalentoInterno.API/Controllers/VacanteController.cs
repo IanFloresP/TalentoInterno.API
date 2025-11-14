@@ -1,10 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using TalentoInterno.CORE.Core.DTOs;
-using TalentoInterno.CORE.Core.Services;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Services;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -23,6 +20,7 @@ public class VacanteController : ControllerBase
         _vacanteSkillReqService = vacanteSkillReqService;
     }
 
+    // HU-12: Listar todo
     [HttpGet]
     public async Task<IActionResult> GetAll()
     {
@@ -30,19 +28,26 @@ public class VacanteController : ControllerBase
         return Ok(vacantes);
     }
 
+    // HU-08: Ver detallado
     [HttpGet("{id}")]
     public async Task<IActionResult> GetById(int id)
     {
         var vacante = await _vacanteService.GetVacanteByIdAsync(id);
-        if (vacante == null)
-            return NotFound();
+        if (vacante == null) return NotFound();
         return Ok(vacante);
     }
 
+    // HU-06: Registrar vacante Y sus skills
     [HttpPost]
-    public async Task<IActionResult> Create([FromBody] VacanteDto vacanteDto)
+    public async Task<IActionResult> Create([FromBody] VacanteCreateDTO dto)
     {
-        await _vacanteService.CreateVacanteAsync(new Vacante
+        try
+        {
+            var nuevaVacante = await _vacanteService.CreateVacanteAsync(dto);
+            var vacanteDto = await _vacanteService.GetVacanteByIdAsync(nuevaVacante.VacanteId);
+            return CreatedAtAction(nameof(GetById), new { id = nuevaVacante.VacanteId }, vacanteDto);
+        }
+        catch (Exception ex)
         {
             // Map properties from DTO to entity
             VacanteId = vacanteDto.VacanteId,
@@ -58,8 +63,9 @@ public class VacanteController : ControllerBase
         return CreatedAtAction(nameof(GetById), new { id = vacanteDto.VacanteId }, vacanteDto);
     }
 
+    // Actualizar datos de la vacante (no sus skills)
     [HttpPut("{id}")]
-    public async Task<IActionResult> Update(int id, [FromBody] VacanteDto vacanteDto)
+    public async Task<IActionResult> Update(int id, [FromBody] VacanteUpdateDTO dto)
     {
         var vacante = await _vacanteService.GetVacanteByIdAsync(id);
         if (vacante == null)
@@ -82,14 +88,11 @@ public class VacanteController : ControllerBase
     [HttpDelete("{id}")]
     public async Task<IActionResult> Delete(int id)
     {
-        var vacante = await _vacanteService.GetVacanteByIdAsync(id);
-        if (vacante == null)
-            return NotFound();
-
         await _vacanteService.DeleteVacanteAsync(id);
         return NoContent();
     }
 
+    // HU-09: Obtener habilidades requisitos de la vacante
     [HttpGet("{id}/skills")]
     public async Task<IActionResult> GetSkills(int id)
     {
@@ -106,6 +109,7 @@ public class VacanteController : ControllerBase
         return Ok(dto);
     }
 
+    // HU-07, HU-08, HU-10: Ejecutar algoritmo de matching
     [HttpGet("{id}/matching")]
     public async Task<IActionResult> GetMatchingCandidates(int id)
     {
@@ -177,6 +181,7 @@ public class VacanteController : ControllerBase
         return Ok(ordered);
     }
 
+    // HU-08, HU-13: Visualizar clasificaci�n de candidatos
     [HttpGet("{id}/ranking")]
     public async Task<IActionResult> GetRanking(int id)
     {
