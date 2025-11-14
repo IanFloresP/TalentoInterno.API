@@ -1,12 +1,18 @@
-using TalentoInterno.CORE.Core.Entities;
+﻿using TalentoInterno.CORE.Core.Entities;
 
 namespace TalentoInterno.CORE.Core.Interfaces;
 
 public interface IVacanteSkillReqRepository
 {
-    Task<IEnumerable<VacanteSkillReq>> GetAllAsync();
+    // Para el 'match' y 'VacanteController' (HU-09)
+    Task<IEnumerable<VacanteSkillReq>> GetByVacanteIdAsync(int vacanteId);
+
+    // Para el CRUD de VacanteSkillReqController (HU-06)
     Task<VacanteSkillReq?> GetByIdAsync(int vacanteId, int skillId);
     Task AddAsync(VacanteSkillReq vacanteSkillReq);
     Task UpdateAsync(VacanteSkillReq vacanteSkillReq);
     Task DeleteAsync(int vacanteId, int skillId);
+
+    // Para guardar cambios desde el servicio
+    Task SaveChangesAsync();
 }
