@@ -46,6 +46,13 @@ namespace UESAN.Ecommerce.CORE.Infrastructure.Shared
                        IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey))
                    };
                });
+
+            // Register new auditing, reporting, auth, dashboard and alerta services using fully-qualified names to avoid resolution issues
+            services.AddScoped<TalentoInterno.CORE.Core.Interfaces.IAuditoriaService, TalentoInterno.CORE.Core.Services.AuditoriaService>();
+            services.AddScoped<TalentoInterno.CORE.Core.Interfaces.IReporteService, TalentoInterno.CORE.Core.Services.ReporteService>();
+            services.AddScoped<TalentoInterno.CORE.Core.Interfaces.IAuthService, TalentoInterno.CORE.Core.Services.AuthService>();
+            services.AddScoped<TalentoInterno.CORE.Core.Interfaces.IDashboardService, TalentoInterno.CORE.Core.Services.DashboardService>();
+            services.AddScoped<TalentoInterno.CORE.Core.Interfaces.IAlertaService, TalentoInterno.CORE.Core.Services.AlertaService>();
         }
     }
 }
