@@ -1,8 +1,7 @@
-﻿using Microsoft.AspNetCore.DataProtection.Repositories;
-using Microsoft.EntityFrameworkCore;
 using TalentoInterno.CORE.Core.Entities;
-using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Infrastructure.Data;
+using Microsoft.EntityFrameworkCore;
+using TalentoInterno.CORE.Core.Interfaces;
 
 namespace TalentoInterno.CORE.Infrastructure.Repositories;
 
@@ -28,12 +27,13 @@ public class RolRepository : IRolRepository
     public async Task AddAsync(Rol rol)
     {
         await _context.Rol.AddAsync(rol);
+        await _context.SaveChangesAsync();
     }
 
-    public Task UpdateAsync(Rol rol)
+    public async Task UpdateAsync(Rol rol)
     {
         _context.Rol.Update(rol);
-        return Task.CompletedTask;
+        await _context.SaveChangesAsync();
     }
 
     public async Task DeleteAsync(int id)
@@ -42,11 +42,7 @@ public class RolRepository : IRolRepository
         if (rol != null)
         {
             _context.Rol.Remove(rol);
+            await _context.SaveChangesAsync();
         }
-    }
-
-    public async Task SaveChangesAsync()
-    {
-        await _context.SaveChangesAsync();
     }
 }

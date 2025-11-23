@@ -61,6 +61,10 @@ builder.Services.AddScoped<IMatchingService, MatchingService>();
 builder.Services.AddScoped<IExportacionService, ExportacionService>();
 
 
+// Register colaborador/colaboradorSkill services
+builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
+builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+
 builder.Services.AddControllers();
 //Add CORS policy
 builder.Services.AddCors(options =>

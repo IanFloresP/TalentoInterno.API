@@ -1,14 +1,12 @@
-﻿using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Entities;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IRolRepository
 {
-    public interface IRolRepository
-    {
-        Task AddAsync(Rol rol);
-        Task DeleteAsync(int id);
-        Task<IEnumerable<Rol>> GetAllAsync();
-        Task<Rol?> GetByIdAsync(int id);
-        Task SaveChangesAsync();
-        Task UpdateAsync(Rol rol);
-    }
+    Task<IEnumerable<Rol>> GetAllAsync();
+    Task<Rol?> GetByIdAsync(int id);
+    Task AddAsync(Rol rol);
+    Task UpdateAsync(Rol rol);
+    Task DeleteAsync(int id);
 }

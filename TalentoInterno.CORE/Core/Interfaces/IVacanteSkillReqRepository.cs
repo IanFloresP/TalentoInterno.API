@@ -9,6 +9,7 @@ public interface IVacanteSkillReqRepository
 
     // Para el CRUD de VacanteSkillReqController (HU-06)
     Task<VacanteSkillReq?> GetByIdAsync(int vacanteId, int skillId);
+    Task<IEnumerable<VacanteSkillReq>> GetByVacanteIdAsync(int vacanteId);
     Task AddAsync(VacanteSkillReq vacanteSkillReq);
     Task UpdateAsync(VacanteSkillReq vacanteSkillReq);
     Task DeleteAsync(int vacanteId, int skillId);

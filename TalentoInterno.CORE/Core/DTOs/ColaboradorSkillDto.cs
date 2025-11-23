@@ -1,4 +1,4 @@
-﻿namespace TalentoInterno.CORE.Core.DTOs;
+namespace TalentoInterno.CORE.Core.DTOs;
 
 public class ColaboradorSkillDto
 {
