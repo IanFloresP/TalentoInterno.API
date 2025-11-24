@@ -41,6 +41,14 @@ public class DashboardController : ControllerBase
         return Ok(kpis);
     }
 
+    // GET /api/dashboard/analytics
+    [HttpGet("analytics")]
+    public async Task<IActionResult> GetFullAnalytics()
+    {
+        var data = await _dashboardService.GetDashboardDataAsync();
+        return Ok(data);
+    }
+
     // 3. GET /dashboard/skills/resumen?area=...
     // HU-12: Resumen de skills por área (distribución y brechas)
     [HttpGet("skills/resumen")]

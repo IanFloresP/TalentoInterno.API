@@ -15,19 +15,6 @@ public class DashboardService : IDashboardService
         _context = context;
     }
 
-    // --- Método existente (Power BI) ---
-    public async Task<DashboardCompletoDto> GetDashboardDataAsync()
-    {
-        // ... (MANTÉN TU CÓDIGO ACTUAL AQUÍ) ...
-        // (El que genera KpisPrincipales, VacantesPorEstado, etc.)
-
-        var response = new DashboardCompletoDto();
-        // ... (Lógica que ya tienes) ...
-        // (Por brevedad no la repito toda, pero déjala igual)
-
-        // Solo asegúrate de retornar 'response' al final
-        return await GenerarDashboardCompletoInterno(); // (O pega tu código aquí)
-    }
 
     // Método auxiliar para no borrar tu código (Pega tu lógica aquí o arriba)
     private async Task<DashboardCompletoDto> GenerarDashboardCompletoInterno()
@@ -84,5 +71,69 @@ public class DashboardService : IDashboardService
             .ToListAsync();
 
         return inventario;
+    }
+
+    // --- Método existente (Power BI) ---
+
+
+    public async Task<DashboardCompletoDto> GetDashboardDataAsync()
+    {
+        var response = new DashboardCompletoDto();
+
+        // 1. KPIs Principales
+        var totalColab = await _context.Colaborador.CountAsync(c => c.Activo == true);
+        var vacantesAbiertas = await _context.Vacante.CountAsync(v => v.Estado == "Abierta");
+        var vacantesCriticas = await _context.Vacante.CountAsync(v => v.Estado == "Abierta" && v.UrgenciaId == 3);
+
+        response.KpisPrincipales = new List<KpiCardDto>
+    {
+        new KpiCardDto { Titulo = "Colaboradores", Valor = totalColab, Icono = "people", Color = "blue" },
+        new KpiCardDto { Titulo = "Vacantes", Valor = vacantesAbiertas, Icono = "work", Color = "green" },
+        new KpiCardDto { Titulo = "Críticas", Valor = vacantesCriticas, Icono = "warning", Color = "red" }
+    };
+
+        // 2. Gráfico Dona (Vacantes por Estado)
+        var vacantesPorEstado = await _context.Vacante
+            .GroupBy(v => v.Estado)
+            .Select(g => new { Estado = g.Key, Cantidad = g.Count() })
+            .ToListAsync();
+
+        response.VacantesPorEstado.Etiquetas = vacantesPorEstado.Select(x => x.Estado).ToList();
+        response.VacantesPorEstado.Valores = vacantesPorEstado.Select(x => x.Cantidad).ToList();
+
+        // 3. Gráfico Barras (Top Skills)
+        var topSkills = await _context.VacanteSkillReq
+            .Where(r => r.Vacante.Estado == "Abierta")
+            .GroupBy(r => r.Skill.Nombre)
+            .Select(g => new { Skill = g.Key, Demanda = g.Count() })
+            .OrderByDescending(x => x.Demanda)
+            .Take(5)
+            .ToListAsync();
+
+        response.TopSkillsDemandadas.Etiquetas = topSkills.Select(x => x.Skill).ToList();
+        response.TopSkillsDemandadas.Valores = topSkills.Select(x => x.Demanda).ToList();
+
+        // 4. Gráfico Apilado (Categorías y Series)
+        var targetSkills = response.TopSkillsDemandadas.Etiquetas;
+        var dataInventario = await _context.ColaboradorSkill
+            .Where(cs => targetSkills.Contains(cs.Skill.Nombre))
+            .Include(cs => cs.Skill).Include(cs => cs.Nivel)
+            .ToListAsync();
+
+        response.InventarioTalento.Categorias = targetSkills; // Eje X
+
+        var niveles = await _context.NivelDominio.OrderBy(n => n.NivelId).ToListAsync();
+        foreach (var nivel in niveles)
+        {
+            var serie = new SerieDatosDto { Nombre = nivel.Nombre }; // Ej: "Avanzado"
+            foreach (var skillName in targetSkills)
+            {
+                int count = dataInventario.Count(x => x.Skill.Nombre == skillName && x.NivelId == nivel.NivelId);
+                serie.Datos.Add(count);
+            }
+            response.InventarioTalento.Series.Add(serie);
+        }
+
+        return response;
     }
 }
