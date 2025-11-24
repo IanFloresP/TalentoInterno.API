@@ -1,9 +1,9 @@
-﻿using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.DTOs;
 
 namespace TalentoInterno.CORE.Core.Interfaces;
 
 public interface IAlertaService
 {
-    // Ahora acepta parámetros opcionales para filtrar
-    Task<AlertasResponseDto> GenerarAlertasAsync(string? tipo = null, int? id = null, int? umbral = null);
+    AlertaDTO AlertarVacante(int vacanteId, int umbral);
+    AlertaDTO AlertarSkillCritico(int skillId, int umbral);
 }
