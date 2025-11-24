@@ -1,10 +1,11 @@
-﻿using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.DTOs;
 
-namespace TalentoInterno.CORE.Core.Services
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IAuthService
 {
-    public interface IAuthService
-    {
-        Task<AuthResponseDto> LoginAsync(LoginDto loginDto);
-        Task<AuthResponseDto> GetSessionAsync(int usuarioId);
-    }
+    LoginResponseDTO Login(LoginRequestDTO request);
+    void Logout(string token);
+    bool Validate(string token);
+    LoginResponseDTO Refresh(string refreshToken);
 }

@@ -1,11 +1,9 @@
-﻿using TalentoInterno.CORE.Core.DTOs;
+using TalentoInterno.CORE.Core.DTOs;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IAuditoriaService
 {
-    public interface IAuditoriaService
-    {
-        Task<IEnumerable<AuditoriaGetDto>> ObtenerHistorialAsync(int? usuarioId, DateTime? desde, DateTime? hasta, string? accion);
-        Task RegistrarAccionAsync(AuditoriaCreateDto dto);
-        Task<IEnumerable<AuditoriaResumenDto>> ObtenerResumenAsync();
-    }
+    void RegistrarAccion(AuditoriaRegistroDTO registro);
+    AuditoriaResumenDTO ObtenerResumen(int usuarioId, DateTime fechaInicio, DateTime fechaFin);
 }
