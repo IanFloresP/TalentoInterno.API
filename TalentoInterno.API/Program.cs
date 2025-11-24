@@ -82,6 +82,9 @@ builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddScoped<IKpiService, KpiService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
 
+builder.Services.AddScoped<IColaboradorCertificacionRepository, ColaboradorCertificacionRepository>();
+builder.Services.AddScoped<IColaboradorCertificacionService, ColaboradorCertificacionService>();
+
 builder.Services.AddControllers();
 //Add CORS policy
 builder.Services.AddCors(options =>
