@@ -8,4 +8,7 @@ public class AlertaDto
     public int? EntidadId { get; set; } // ID de la Vacante o Skill
     public string EntidadNombre { get; set; } = null!; // Nombre de la Vacante o Skill
     public int ValorActual { get; set; } // Ej: 0 candidatos
+    public string? Detalles { get; set; } // Información adicional
+    public List<string>? Sugerencias { get; set; } // Recomendaciones
+
 }
