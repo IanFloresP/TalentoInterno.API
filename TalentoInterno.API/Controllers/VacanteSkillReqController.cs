@@ -1,10 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.DTOs; // ¡Aquí están los DTOs correctos!
+using TalentoInterno.CORE.Core.Interfaces;
+using TalentoInterno.CORE.Core.Services;
 
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin, RRHH, Business Manager")]
 [Route("api/VacanteSkillReq")] // Ruta base
 public class VacanteSkillReqController : ControllerBase
 {
@@ -24,6 +27,7 @@ public class VacanteSkillReqController : ControllerBase
 
     // --- HU-06: Agregar habilidad requerida a una vacante ---
     [HttpPost("{vacanteId}/skills")]
+    [Authorize(Roles = "Admin, RRHH")]
     public async Task<IActionResult> AddSkillToVacante(int vacanteId, [FromBody] VacanteSkillReqCreateDTO dto)
     {
         try
@@ -40,6 +44,7 @@ public class VacanteSkillReqController : ControllerBase
 
     // --- HU-06: Actualizar nivel/peso de habilidad requerida ---
     [HttpPut("{vacanteId}/skills/{skillId}")]
+    [Authorize(Roles = "Admin, RRHH")]
     public async Task<IActionResult> UpdateSkillOnVacante(int vacanteId, int skillId, [FromBody] VacanteSkillReqUpdateDTO dto)
     {
         try

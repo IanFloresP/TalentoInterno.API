@@ -1,6 +1,10 @@
 // --- Importaciones necesarias ---
 
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.IdentityModel.Tokens;
+using OfficeOpenXml;
+using System.Text;
 using System.Text.Json.Serialization;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Services;
@@ -9,6 +13,8 @@ using TalentoInterno.CORE.Infrastructure.Repositories;
 
 var builder = WebApplication.CreateBuilder(args);
 
+
+// Si es uso no comercial:
 // --- 1. Registro de Servicios de .NET ---
 
 // Añade controladores y configura JSON para ignorar ciclos (útil con Entity Framework)
@@ -60,10 +66,21 @@ builder.Services.AddScoped<IMatchingService, MatchingService>();
 
 builder.Services.AddScoped<IExportacionService, ExportacionService>();
 
+builder.Services.AddScoped<IAuthService, AuthService>();
+
+builder.Services.AddScoped<IAuditoriaRepository, AuditoriaRepository>();
+builder.Services.AddScoped<IAuditoriaService, AuditoriaService>();
+
+// REGISTRA EL FILTRO AQUÍ
+builder.Services.AddScoped<TalentoInterno.API.Filters.AuditoriaFilter>();
 
 // Register colaborador/colaboradorSkill services
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
+
+builder.Services.AddScoped<IAlertaService, AlertaService>();
+builder.Services.AddScoped<IKpiService, KpiService>();
+builder.Services.AddScoped<IDashboardService, DashboardService>();
 
 builder.Services.AddControllers();
 //Add CORS policy
@@ -78,17 +95,41 @@ builder.Services.AddCors(options =>
         });
 });
 
+// --- 1. Configuración de Autenticación JWT (¡AGREGA ESTO!) ---
+builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+    .AddJwtBearer(options =>
+    {
+        options.TokenValidationParameters = new TokenValidationParameters
+        {
+            ValidateIssuer = true,
+            ValidateAudience = true,
+            ValidateLifetime = true,
+            ValidateIssuerSigningKey = true,
+            ValidIssuer = builder.Configuration["JwtSettings:Issuer"],
+            ValidAudience = builder.Configuration["JwtSettings:Audience"],
+            IssuerSigningKey = new SymmetricSecurityKey(
+                Encoding.UTF8.GetBytes(builder.Configuration["JwtSettings:SecretKey"]!))
+        };
+    });
+// -------------------------------------------------------------
 // --- Construcción de la App ---
+builder.Services.AddControllers().AddJsonOptions(options =>
+{
+    // ESTA ES LA LÍNEA CLAVE:
+    options.JsonSerializerOptions.ReferenceHandler = ReferenceHandler.IgnoreCycles;
+});
+
 var app = builder.Build();
 
 
 
 app.UseHttpsRedirection();
 
-// Usa la política de CORS que definimos
 app.UseCors("AllowFrontend");
 
-app.UseAuthorization();
+// --- ¡IMPORTANTE! El orden importa aquí ---
+app.UseAuthentication(); // 1. ¿Quién eres? (¡AGREGA ESTO!)
+app.UseAuthorization();  // 2. ¿Qué puedes hacer?
 
 app.MapControllers();
 

@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Interfaces;
 
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin")]
 [Route("api/[controller]")]
 public class RolController : ControllerBase
 {

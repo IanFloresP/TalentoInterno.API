@@ -1,13 +1,15 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Infrastructure.Data;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
+using System.Linq; // ¡Importar LINQ para .Select()!
 using System.Threading.Tasks;
 using TalentoInterno.CORE.Core.DTOs; // ¡Importar DTOs!
-using System.Linq; // ¡Importar LINQ para .Select()!
+using TalentoInterno.CORE.Infrastructure.Data;
 
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin, RRHH, Business Manager")]
 [Route("api/catalogos")]
 public class CatalogoController : ControllerBase
 {

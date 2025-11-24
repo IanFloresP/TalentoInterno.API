@@ -1,17 +1,21 @@
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
+using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Entities;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.DTOs;
-using System.Linq;
+using TalentoInterno.CORE.Infrastructure.Data;
 
 namespace TalentoInterno.CORE.Core.Services;
 
 public class ColaboradorService : IColaboradorService
 {
     private readonly IColaboradorRepository _repository;
+    private readonly TalentoInternooContext _context;
 
-    public ColaboradorService(IColaboradorRepository repository)
+    public ColaboradorService(IColaboradorRepository repository, TalentoInternooContext context)
     {
         _repository = repository;
+        _context = context;
     }
 
     public async Task<IEnumerable<ColaboradorDTO>> GetAllColaboradoresAsync()
@@ -62,54 +66,104 @@ public class ColaboradorService : IColaboradorService
         };
     }
 
-    public async Task<Colaborador> CreateColaboradorAsync(ColaboradorDTO colaboradorDTO)
+    public async Task<Colaborador> CreateColaboradorAsync(ColaboradorCreateDTO dto)
     {
-        // 1. Crea una nueva entidad Colaborador
-        var colaborador = new Colaborador
+        await using var transaction = await _context.Database.BeginTransactionAsync();
+        try
         {
-            // 2. Mapea los datos desde el DTO
-            Nombres = colaboradorDTO.Nombres,
-            Apellidos = colaboradorDTO.Apellidos,
-            Email = colaboradorDTO.Email,
-            RolId = colaboradorDTO.RolId,
-            AreaId = colaboradorDTO.AreaId,
-            DepartamentoId = colaboradorDTO.DepartamentoId,
-            DisponibleMovilidad = colaboradorDTO.DisponibleMovilidad,
-            Activo = colaboradorDTO.Activo,
+            // 1. Crear el Colaborador (Sin contraseña)
+            var colaborador = new Colaborador
+            {
+                Nombres = dto.Nombres,
+                Apellidos = dto.Apellidos,
+                Email = dto.Email,
+                RolId = dto.RolId,
+                AreaId = dto.AreaId,
+                DepartamentoId = dto.DepartamentoId, // Assuming int? is handled
+                DisponibleMovilidad = dto.DisponibleMovilidad,
+                Activo = dto.Activo,
+                FechaAlta = DateOnly.FromDateTime(DateTime.Now)
+            };
 
-            // 3. ¡TU REQUISITO! Establece la fecha de alta como la fecha actual
-            FechaAlta = DateOnly.FromDateTime(DateTime.Now)
-        };
+            await _repository.AddAsync(colaborador);
 
-        // 4. Llama al repositorio para guardar
-        await _repository.AddAsync(colaborador);
+            // 2. Crear el Usuario (Con la contraseña hasheada)
+            var usuario = new Usuario
+            {
+                Email = dto.Email,
+                // Usamos BCrypt para hashear la contraseña que viene en el CreateDTO
+                PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Password),
+                RolId = dto.RolId,
+                ColaboradorId = colaborador.ColaboradorId,
+                Activo = true,
+                FechaCreacion = DateOnly.FromDateTime(DateTime.Now)
+            };
 
-        // 5. Devuelve la entidad completa (con el nuevo ColaboradorId)
-        return colaborador;
+            _context.Usuario.Add(usuario);
+            await _context.SaveChangesAsync();
+
+            await transaction.CommitAsync();
+
+            return colaborador;
+        }
+        catch
+        {
+            await transaction.RollbackAsync();
+            throw;
+        }
     }
 
-    public async Task UpdateColaboradorAsync(ColaboradorDTO colaboradorDTO)
+    // ... (Update and Delete remain the same)
+
+
+    public async Task UpdateColaboradorAsync(ColaboradorDTO dto)
     {
-        // Opcional: Primero busca el colaborador existente
-        var colaborador = await _repository.GetByIdAsync(colaboradorDTO.ColaboradorId);
-        if (colaborador == null)
+        // 1. Buscar al Colaborador existente
+        var colaborador = await _repository.GetByIdAsync(dto.ColaboradorId);
+        if (colaborador == null) throw new KeyNotFoundException("Colaborador no encontrado.");
+
+        // --- ACTUALIZACIÓN DE DATOS DE COLABORADOR ---
+        colaborador.Nombres = dto.Nombres;
+        colaborador.Apellidos = dto.Apellidos;
+        colaborador.Email = dto.Email;
+        colaborador.RolId = dto.RolId;
+        colaborador.AreaId = dto.AreaId;
+        colaborador.DepartamentoId = dto.DepartamentoId;
+        colaborador.DisponibleMovilidad = dto.DisponibleMovilidad;
+        colaborador.Activo = dto.Activo;
+
+        // ¡IMPORTANTE! NO actualizamos FechaAlta. Se queda la que tenía.
+
+        // 2. Buscar el Usuario asociado (para actualizar credenciales)
+        // Usamos el _context directamente porque es una operación cruzada
+        var usuario = await _context.Usuario
+            .FirstOrDefaultAsync(u => u.ColaboradorId == colaborador.ColaboradorId);
+
+        if (usuario != null)
         {
-            throw new Exception("Colaborador no encontrado"); // O maneja el error
+            // Sincronizar Email (si cambiaron el email del colaborador, cambiamos el del login)
+            usuario.Email = dto.Email;
+
+            // Sincronizar Rol (si el DTO trae rol, actualizamos el acceso)
+            usuario.RolId = dto.RolId;
+
+            // Sincronizar Estado
+            usuario.Activo = dto.Activo;
+
+            // --- ACTUALIZACIÓN DE CONTRASEÑA (Lógica Segura) ---
+            // Solo si el campo 'Contraseña' del DTO NO está vacío, la actualizamos.
+            // Si viene null o "", asumimos que no quieren cambiarla.
+            if (!string.IsNullOrEmpty(dto.Contraseña))
+            {
+                usuario.PasswordHash = BCrypt.Net.BCrypt.HashPassword(dto.Contraseña);
+            }
         }
 
-        // Mapea los valores del DTO a la entidad
-        colaborador.Nombres = colaboradorDTO.Nombres;
-        colaborador.Apellidos = colaboradorDTO.Apellidos;
-        colaborador.Email = colaboradorDTO.Email;
-        colaborador.RolId = colaboradorDTO.RolId;
-        colaborador.AreaId = colaboradorDTO.AreaId;
-        colaborador.DepartamentoId = colaboradorDTO.DepartamentoId;
-        colaborador.DisponibleMovilidad = colaboradorDTO.DisponibleMovilidad;
-        colaborador.Activo = colaboradorDTO.Activo;
-        colaborador.FechaAlta = colaboradorDTO.FechaAlta;
-
-        // Llama al repositorio con la entidad actualizada
+        // 3. Guardar todo (Colaborador y Usuario)
+        // Al usar _repository.UpdateAsync, EF detecta cambios en 'colaborador'.
+        // Como 'usuario' también está traqueado por el contexto, se guardará al hacer SaveChanges.
         await _repository.UpdateAsync(colaborador);
+        // Nota: Tu repositorio ya debería hacer SaveChangesAsync(), si no, añádelo aquí.
     }
 
     public async Task DeleteColaboradorAsync(int id)
