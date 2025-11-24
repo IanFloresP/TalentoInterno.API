@@ -6,7 +6,6 @@ using System.Text.RegularExpressions;
 using TalentoInterno.API.Filters;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.Services;
 using TalentoInterno.CORE.Infrastructure.Data;
 
 namespace TalentoInterno.API.Controllers;

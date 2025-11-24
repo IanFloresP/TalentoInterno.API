@@ -3,6 +3,7 @@ using TalentoInterno.CORE.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System;
+using TalentoInterno.CORE.Core.DTOs;
 
 namespace TalentoInterno.API.Controllers;
 

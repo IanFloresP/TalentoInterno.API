@@ -13,6 +13,6 @@ namespace TalentoInterno.CORE.Core.DTOs
         public string Rol { get; set; } = null!; // Ej: "Admin", "Reclutador"
         public int UsuarioId { get; set; }
         public int? ColaboradorId { get; set; } // Para saber quién es
-        public string? NombreCompleto { get; set; } 
+        public string? NombreCompleto { get; set; } // Nombre del colaborador asociado
     }
 }

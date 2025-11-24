@@ -10,6 +10,11 @@ using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Services;
 using TalentoInterno.CORE.Infrastructure.Data;
 using TalentoInterno.CORE.Infrastructure.Repositories;
+using System.IdentityModel.Tokens.Jwt;
+using System.Security.Claims;
+using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Settings;
+
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -37,6 +42,9 @@ builder.Services.AddDbContext<TalentoInternooContext>(options =>
 builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
 builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 
+builder.Services.AddScoped<IColaboradorCertificacionRepository, ColaboradorCertificacionRepository>();
+builder.Services.AddScoped<IColaboradorCertificacionService,  ColaboradorCertificacionService>();
+
 builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
 
@@ -61,6 +69,10 @@ builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 
+// Program.cs - register implementation
+builder.Services.AddScoped<IJwtService, JwtService>();
+// Optional: bind settings
+builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JwtSettings"));
 
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 
@@ -81,9 +93,6 @@ builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillReposito
 builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddScoped<IKpiService, KpiService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
-
-builder.Services.AddScoped<IColaboradorCertificacionRepository, ColaboradorCertificacionRepository>();
-builder.Services.AddScoped<IColaboradorCertificacionService, ColaboradorCertificacionService>();
 
 builder.Services.AddControllers();
 //Add CORS policy
