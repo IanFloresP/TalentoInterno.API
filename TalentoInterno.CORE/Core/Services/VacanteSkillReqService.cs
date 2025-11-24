@@ -5,6 +5,8 @@ using System.Linq;
 
 namespace TalentoInterno.CORE.Core.Services;
 
+
+
 public class VacanteSkillReqService : IVacanteSkillReqService
 {
     private readonly IVacanteSkillReqRepository _repository;
@@ -14,7 +16,26 @@ public class VacanteSkillReqService : IVacanteSkillReqService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<VacanteSkillReq>> GetAllVacanteSkillReqsAsync()
+    public async Task<VacanteSkillReqGetDTO> GetVacanteSkillReqAsync(int vacanteId, int skillId)
+    {
+        var requisito = await _repository.GetByIdAsync(vacanteId, skillId);
+        if (requisito == null)
+        {
+            throw new KeyNotFoundException("El requisito de la vacante no fue encontrado.");
+        }
+        return new VacanteSkillReqGetDTO
+        {
+            VacanteId = requisito.VacanteId,
+            SkillId = requisito.SkillId,
+            SkillNombre = requisito.Skill?.Nombre ?? "N/A",
+            NivelDeseado = requisito.NivelDeseado,
+            NivelNombre = requisito.NivelDeseadoNavigation?.Nombre ?? "N/A",
+            Peso = requisito.Peso,
+            Critico = requisito.Critico
+        };
+    }
+
+    public async Task<IEnumerable<VacanteSkillReqGetDTO>> GetSkillsByVacanteAsync(int vacanteId)
     {
         var requisitos = await _repository.GetByVacanteIdAsync(vacanteId);
 

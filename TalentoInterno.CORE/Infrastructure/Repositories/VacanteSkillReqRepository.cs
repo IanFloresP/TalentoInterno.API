@@ -33,7 +33,7 @@ public class VacanteSkillReqRepository : IVacanteSkillReqRepository
             .FindAsync(vacanteId, skillId);
     }
 
- 
+
 
     public async Task AddAsync(VacanteSkillReq vacanteSkillReq)
     {
