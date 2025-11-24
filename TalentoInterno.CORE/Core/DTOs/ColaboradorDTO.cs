@@ -1,3 +1,5 @@
+using System.ComponentModel.DataAnnotations;
+
 namespace TalentoInterno.CORE.Core.DTOs;
 
 public class ColaboradorDTO
@@ -6,6 +8,10 @@ public class ColaboradorDTO
     public string Nombres { get; set; } = null!;
     public string Apellidos { get; set; } = null!;
     public string Email { get; set; } = null!;
+
+    [Required]
+    [MinLength(8)] // Añadir validación de longitud mínima
+    public string? Contraseña { get; set; } = null!;// Campo de texto plano para la nueva contraseña
     public int RolId { get; set; }
     public int AreaId { get; set; }
     public int DepartamentoId { get; set; }

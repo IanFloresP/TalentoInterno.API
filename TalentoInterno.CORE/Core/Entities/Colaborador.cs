@@ -34,4 +34,6 @@ public partial class Colaborador
     public virtual Departamento Departamento { get; set; } = null!;
 
     public virtual Rol Rol { get; set; } = null!;
+
+    public virtual ICollection<Usuario> Usuario { get; set; } = new List<Usuario>();
 }

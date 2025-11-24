@@ -20,7 +20,7 @@ public class AuthService : IAuthService
     {
         _logger.LogInformation("Intento de login para usuario {Email}", request.Email);
 
-        // Simulación: en implementación real se valida hash/salt
+        // SimulaciÃ³n: en implementaciÃ³n real se valida hash/salt
         var colaboradorId = 1; // Ejemplo
         var role = "User";
 
@@ -51,7 +51,7 @@ public class AuthService : IAuthService
     public bool Validate(string token)
     {
         _logger.LogInformation("Validando token {Token}", token);
-        return true; // Simulación
+        return true; // SimulaciÃ³n
     }
 
     public LoginResponseDTO Refresh(string refreshToken)

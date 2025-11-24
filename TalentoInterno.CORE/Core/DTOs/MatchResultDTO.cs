@@ -4,6 +4,7 @@ public class MatchResultDTO
 {
     public int ColaboradorId { get; set; }
     public int VacanteId { get; set; }
+    public string Nombre { get; set; } = null!;
     public double PorcentajeMatch { get; set; }
     public List<SkillMatchDetalleDTO> SkillsQueCumple { get; set; } = new();
     public List<SkillMatchDetalleDTO> SkillsFaltantes { get; set; } = new();

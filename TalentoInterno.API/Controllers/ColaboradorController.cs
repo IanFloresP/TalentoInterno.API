@@ -1,3 +1,4 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Entities;
@@ -7,6 +8,7 @@ using TalentoInterno.CORE.Core.Services;
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin, RRHH, Business Manager")]
 [Route("api/[controller]")]
 public class ColaboradorController : ControllerBase
 {
@@ -60,17 +62,21 @@ public class ColaboradorController : ControllerBase
     }
 
     [HttpPost]
-    // ¡CAMBIO AQUÍ! Recibe ColaboradorCreateDTO
-    public async Task<IActionResult> CreateColaborador([FromBody] ColaboradorDTO colaboradorDTO)
+    [Authorize(Roles = "Admin, RRHH")]
+    public async Task<IActionResult> CreateColaborador([FromBody] ColaboradorCreateDTO colaboradorDTO)
     {
-        // ¡CAMBIO AQUÍ! Llama al nuevo método del servicio
+        // 1. Crea la entidad
         var nuevoColaborador = await _colaboradorService.CreateColaboradorAsync(colaboradorDTO);
 
-        // Esta respuesta (201 Created) es la correcta y usa el ID del colaborador recién creado.
-        return CreatedAtAction(nameof(GetById), new { id = nuevoColaborador.ColaboradorId }, nuevoColaborador);
+        // 2. (CAMBIO) Busca el DTO limpio para devolverlo en la respuesta
+        // Esto oculta el passwordHash y los nulos feos
+        var colaboradorResponse = await _colaboradorService.GetColaboradorByIdAsync(nuevoColaborador.ColaboradorId);
+
+        return CreatedAtAction(nameof(GetById), new { id = nuevoColaborador.ColaboradorId }, colaboradorResponse);
     }
 
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin, RRHH")]
     public async Task<IActionResult> UpdateColaborador(int id, [FromBody] ColaboradorDTO colaboradorDTO)
     {
         if (id != colaboradorDTO.ColaboradorId)

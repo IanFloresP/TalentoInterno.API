@@ -33,14 +33,7 @@ public class VacanteSkillReqRepository : IVacanteSkillReqRepository
             .FindAsync(vacanteId, skillId);
     }
 
-    public async Task<IEnumerable<VacanteSkillReq>> GetByVacanteIdAsync(int vacanteId)
-    {
-        return await _context.VacanteSkillReq
-            .Include(v => v.Skill)
-            .Include(v => v.NivelDeseadoNavigation)
-            .Where(v => v.VacanteId == vacanteId)
-            .ToListAsync();
-    }
+ 
 
     public async Task AddAsync(VacanteSkillReq vacanteSkillReq)
     {

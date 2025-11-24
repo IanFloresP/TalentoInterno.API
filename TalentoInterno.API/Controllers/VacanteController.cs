@@ -1,4 +1,6 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TalentoInterno.API.Filters;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Services;
@@ -6,6 +8,7 @@ using TalentoInterno.CORE.Core.Services;
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
+[Authorize(Roles = "Admin, RRHH, Business Manager")]
 [Route("api/[controller]")]
 public class VacanteController : ControllerBase
 {
@@ -39,6 +42,8 @@ public class VacanteController : ControllerBase
 
     // HU-06: Registrar vacante Y sus skills
     [HttpPost]
+    [Authorize(Roles = "Admin, RRHH")]
+    [ServiceFilter(typeof(AuditoriaFilter))]
     public async Task<IActionResult> Create([FromBody] VacanteCreateDTO dto)
     {
         try
@@ -49,43 +54,31 @@ public class VacanteController : ControllerBase
         }
         catch (Exception ex)
         {
-            // Map properties from DTO to entity
-            VacanteId = vacanteDto.VacanteId,
-            Titulo = vacanteDto.Titulo,
-            PerfilId = vacanteDto.PerfilId,
-            CuentaId = vacanteDto.CuentaId,
-            ProyectoId = vacanteDto.ProyectoId,
-            FechaInicio = vacanteDto.FechaInicio,
-            UrgenciaId = vacanteDto.UrgenciaId,
-            Estado = vacanteDto.Estado,
-            Descripcion = vacanteDto.Descripcion
-        });
-        return CreatedAtAction(nameof(GetById), new { id = vacanteDto.VacanteId }, vacanteDto);
+            return BadRequest(new { message = "Error al crear la vacante.", details = ex.Message });
+        }
     }
 
     // Actualizar datos de la vacante (no sus skills)
     [HttpPut("{id}")]
+    [Authorize(Roles = "Admin, RRHH")]
+    [ServiceFilter(typeof(AuditoriaFilter))]
+
     public async Task<IActionResult> Update(int id, [FromBody] VacanteUpdateDTO dto)
     {
-        var vacante = await _vacanteService.GetVacanteByIdAsync(id);
-        if (vacante == null)
-            return NotFound();
-
-        // Map properties from DTO to entity
-        vacante.Titulo = vacanteDto.Titulo;
-        vacante.PerfilId = vacanteDto.PerfilId;
-        vacante.CuentaId = vacanteDto.CuentaId;
-        vacante.ProyectoId = vacanteDto.ProyectoId;
-        vacante.FechaInicio = vacanteDto.FechaInicio;
-        vacante.UrgenciaId = vacanteDto.UrgenciaId;
-        vacante.Estado = vacanteDto.Estado;
-        vacante.Descripcion = vacanteDto.Descripcion;
-
-        await _vacanteService.UpdateVacanteAsync(vacante);
-        return NoContent();
+        try
+        {
+            await _vacanteService.UpdateVacanteAsync(id, dto);
+            return NoContent();
+        }
+        catch (KeyNotFoundException ex)
+        {
+            return NotFound(new { message = ex.Message });
+        }
     }
 
     [HttpDelete("{id}")]
+    [Authorize(Roles = "Admin, RRHH")]
+    [ServiceFilter(typeof(AuditoriaFilter))]
     public async Task<IActionResult> Delete(int id)
     {
         await _vacanteService.DeleteVacanteAsync(id);
@@ -97,11 +90,12 @@ public class VacanteController : ControllerBase
     public async Task<IActionResult> GetSkills(int id)
     {
         // Return the skill requirements for the vacante
-        var reqs = await _vacanteSkillReqService.GetByVacanteIdAsync(id);
+        var reqs = await _vacanteSkillReqService.GetSkillsByVacanteAsync(id);
         var dto = reqs.Select(r => new VacanteSkillReqDto
         {
             VacanteId = r.VacanteId,
             SkillId = r.SkillId,
+            SkillName = r.SkillNombre,
             NivelDeseado = r.NivelDeseado,
             Peso = r.Peso,
             Critico = r.Critico
@@ -114,7 +108,7 @@ public class VacanteController : ControllerBase
     public async Task<IActionResult> GetMatchingCandidates(int id)
     {
         // Compute matching candidates for a vacante
-        var reqs = (await _vacanteSkillReqService.GetByVacanteIdAsync(id)).ToList();
+        var reqs = (await _vacanteSkillReqService.GetSkillsByVacanteAsync(id)).ToList();
         if (!reqs.Any()) return Ok(Enumerable.Empty<MatchingCandidateDto>());
 
         // compute available counts per skill
@@ -185,16 +179,20 @@ public class VacanteController : ControllerBase
     [HttpGet("{id}/ranking")]
     public async Task<IActionResult> GetRanking(int id)
     {
-        // reuse matching logic and return ranked candidates (IDs and scores)
-        var matchResult = (await GetMatchingCandidatesInternal(id));
-        var ranking = matchResult.Select(m => new { m.ColaboradorId, m.Nombre, m.MatchScore }).OrderByDescending(x => x.MatchScore);
+        // 1. Obtener la lista completa de candidatos con sus skills y puntajes
+        var matchResult = await GetMatchingCandidatesInternal(id);
+
+        // 2. Devolver la lista COMPLETA, ordenada por puntaje.
+        //    NO hagas .Select(...) aquí si quieres ver los detalles.
+        var ranking = matchResult.OrderByDescending(x => x.MatchScore).ToList();
+
         return Ok(ranking);
     }
 
     // internal helper to reuse matching computation
     private async Task<List<MatchingCandidateDto>> GetMatchingCandidatesInternal(int id)
     {
-        var reqs = (await _vacanteSkillReqService.GetByVacanteIdAsync(id)).ToList();
+        var reqs = (await _vacanteSkillReqService.GetSkillsByVacanteAsync(id)).ToList();
         if (!reqs.Any()) return new List<MatchingCandidateDto>();
 
         var colaboradores = (await _colaboradorSkillService.GetColaboradoresWithSkillsAsync(null, null)).ToList();

@@ -15,7 +15,7 @@ public class DashboardService : IDashboardService
 
     public InventarioSkillsDTO ObtenerInventarioSkills(string area, string rol)
     {
-        _logger.LogInformation("Consultando inventario de skills para área {Area}, rol {Rol}", area, rol);
+        _logger.LogInformation("Consultando inventario de skills para Ã¡rea {Area}, rol {Rol}", area, rol);
 
         return new InventarioSkillsDTO
         {

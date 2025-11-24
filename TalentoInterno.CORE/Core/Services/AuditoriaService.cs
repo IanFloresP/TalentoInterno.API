@@ -15,7 +15,7 @@ public class AuditoriaService : IAuditoriaService
 
     public void RegistrarAccion(AuditoriaRegistroDTO registro)
     {
-        _logger.LogInformation("Usuario {UsuarioId} realizó acción {Tipo} sobre {Entidad} con Id {IdAfectado} - Resultado: {Resultado} - Rol: {Rol} - IP: {Ip} - Fecha: {Fecha}",
+        _logger.LogInformation("Usuario {UsuarioId} realizÃ³ acciÃ³n {Tipo} sobre {Entidad} con Id {IdAfectado} - Resultado: {Resultado} - Rol: {Rol} - IP: {Ip} - Fecha: {Fecha}",
             registro.UsuarioId, registro.Tipo, registro.Entidad, registro.IdAfectado, registro.Resultado, registro.Rol, registro.Ip, registro.Timestamp);
     }
 

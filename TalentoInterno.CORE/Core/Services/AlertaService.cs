@@ -22,21 +22,21 @@ public class AlertaService : IAlertaService
             Tipo = "Vacante",
             Severidad = "Alta",
             Mensaje = $"La vacante {vacanteId} no tiene candidatos internos compatibles.",
-            Detalles = $"Umbral mínimo requerido: {umbral}",
+            Detalles = $"Umbral mÃ­nimo requerido: {umbral}",
             Sugerencias = new List<string> { "Considerar reclutamiento externo", "Revisar requisitos de la vacante" }
         };
     }
 
     public AlertaDTO AlertarSkillCritico(int skillId, int umbral)
     {
-        _logger.LogWarning("Skill crítico {SkillId} sin cobertura suficiente (umbral {Umbral})", skillId, umbral);
+        _logger.LogWarning("Skill crÃ­tico {SkillId} sin cobertura suficiente (umbral {Umbral})", skillId, umbral);
 
         return new AlertaDTO
         {
             Tipo = "SkillCritico",
             Severidad = "Alta",
-            Mensaje = $"El skill crítico {skillId} no tiene cobertura suficiente.",
-            Detalles = $"Umbral mínimo requerido: {umbral}",
+            Mensaje = $"El skill crÃ­tico {skillId} no tiene cobertura suficiente.",
+            Detalles = $"Umbral mÃ­nimo requerido: {umbral}",
             Sugerencias = new List<string> { "Capacitar colaboradores existentes", "Contratar perfiles externos especializados" }
         };
     }

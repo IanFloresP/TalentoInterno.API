@@ -18,6 +18,8 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<Area> Area { get; set; }
 
+    public virtual DbSet<Auditoria> Auditoria { get; set; }
+
     public virtual DbSet<Certificacion> Certificacion { get; set; }
 
     public virtual DbSet<Colaborador> Colaborador { get; set; }
@@ -44,10 +46,11 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<Urgencia> Urgencia { get; set; }
 
+    public virtual DbSet<Usuario> Usuario { get; set; }
+
     public virtual DbSet<Vacante> Vacante { get; set; }
 
     public virtual DbSet<VacanteSkillReq> VacanteSkillReq { get; set; }
-
 
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -61,6 +64,30 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(100)
                 .IsUnicode(false);
+
+            entity.HasOne(d => d.Departamento).WithMany(p => p.Area)
+                .HasForeignKey(d => d.DepartamentoId)
+                .HasConstraintName("FK_Area_Departamentos");
+        });
+
+        modelBuilder.Entity<Auditoria>(entity =>
+        {
+            entity.HasKey(e => e.AuditoriaId).HasName("PK__Auditori__095694C3B07B405B");
+
+            entity.Property(e => e.Accion)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Entidad)
+                .HasMaxLength(50)
+                .IsUnicode(false);
+            entity.Property(e => e.Exitoso).HasDefaultValue(true);
+            entity.Property(e => e.Fecha)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+
+            entity.HasOne(d => d.Usuario).WithMany(p => p.Auditoria)
+                .HasForeignKey(d => d.UsuarioId)
+                .HasConstraintName("FK_Auditoria_Usuario");
         });
 
         modelBuilder.Entity<Certificacion>(entity =>
@@ -259,6 +286,31 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(20)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Usuario>(entity =>
+        {
+            entity.HasKey(e => e.UsuarioId).HasName("PK__Usuario__2B3DE7B8F0C86A6E");
+
+            entity.HasIndex(e => e.Email, "UQ__Usuario__A9D10534AFFF5E66").IsUnique();
+
+            entity.Property(e => e.Activo).HasDefaultValue(true);
+            entity.Property(e => e.Email)
+                .HasMaxLength(100)
+                .IsUnicode(false);
+            entity.Property(e => e.FechaCreacion).HasDefaultValueSql("(getdate())");
+            entity.Property(e => e.PasswordHash)
+                .HasMaxLength(255)
+                .IsUnicode(false);
+
+            entity.HasOne(d => d.Colaborador).WithMany(p => p.Usuario)
+                .HasForeignKey(d => d.ColaboradorId)
+                .HasConstraintName("FK_Usuario_Colaborador");
+
+            entity.HasOne(d => d.Rol).WithMany(p => p.Usuario)
+                .HasForeignKey(d => d.RolId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Usuario_Rol");
         });
 
         modelBuilder.Entity<Vacante>(entity =>
