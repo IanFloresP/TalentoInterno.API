@@ -1,12 +1,14 @@
-using System.Collections.Generic;
+﻿namespace TalentoInterno.CORE.Core.DTOs;
 
-namespace TalentoInterno.CORE.Core.DTOs;
-
-public class AlertaDTO
+public class AlertaDto
 {
-    public string Tipo { get; set; } = null!;
-    public string Severidad { get; set; } = null!;
+    public string Tipo { get; set; } = null!; // "RIESGO_VACANTE" o "ESCASEZ_SKILL"
     public string Mensaje { get; set; } = null!;
-    public string Detalles { get; set; } = null!;
-    public List<string> Sugerencias { get; set; } = new();
+    public string Criticidad { get; set; }  // Alta, Media, Baja
+    public int? EntidadId { get; set; } // ID de la Vacante o Skill
+    public string EntidadNombre { get; set; } = null!; // Nombre de la Vacante o Skill
+    public int ValorActual { get; set; } // Ej: 0 candidatos
+    public string? Detalles { get; set; } // Información adicional
+    public List<string>? Sugerencias { get; set; } // Recomendaciones
+
 }

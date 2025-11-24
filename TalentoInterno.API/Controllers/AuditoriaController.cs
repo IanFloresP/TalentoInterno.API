@@ -2,7 +2,7 @@
 using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Interfaces;
-
+using TalentoInterno.CORE.Core.Services;
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]

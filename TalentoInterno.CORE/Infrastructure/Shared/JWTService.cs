@@ -1,50 +1,47 @@
-﻿using Microsoft.Extensions.Options;
-using Microsoft.IdentityModel.Tokens;
-using System;
-using System.Collections.Generic;
-using System.IdentityModel.Tokens.Jwt;
-using System.Linq;
+﻿using System.IdentityModel.Tokens.Jwt;
 using System.Security.Claims;
 using System.Text;
-using System.Threading.Tasks;
+using Microsoft.IdentityModel.Tokens;
+using Microsoft.Extensions.Configuration;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.Settings;
 using TalentoInterno.CORE.Core.Entities;
+using TalentoInterno.CORE.Core.Settings;
 
-namespace TalentoInterno.CORE.Infrastructure.Shared
+public class JwtService : IJwtService
 {
-    public class JWTService : IJWTService
+    public JWTSettings _settings { get; }
+    private readonly SymmetricSecurityKey _key;
+
+    public JwtService(IConfiguration config)
     {
-        public JWTSettings _settings { get; }
-        public JWTService(IOptions<JWTSettings> settings)
+        _settings = new JWTSettings
         {
-            _settings = settings.Value;
-        }
+            SecretKey = config["JwtSettings:SecretKey"] ?? throw new ArgumentNullException("JwtSettings:SecretKey"),
+            Issuer = config["JwtSettings:Issuer"],
+            Audience = config["JwtSettings:Audience"],
+            DurationInMinutes = double.Parse(config["JwtSettings:DurationInMinutes"] ?? "60")
+        };
+        _key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
+    }
 
-        public string GenerateJWToken(Colaborador colaborador)
+    public string GenerateJWToken(Colaborador colaborador)
+    {
+        var claims = new List<Claim>
         {
-            var ssk = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_settings.SecretKey));
-            var sc = new SigningCredentials(ssk, SecurityAlgorithms.HmacSha256);
-            var header = new JwtHeader(sc);
+            new Claim(JwtRegisteredClaimNames.Sub, colaborador.Email ?? ""),
+            new Claim("id", colaborador.ColaboradorId.ToString()),
+            new Claim(ClaimTypes.Role, colaborador.Rol?.Nombre ?? "")
+        };
 
-            var claims = new[] {
-              new Claim(ClaimTypes.Name, (colaborador.Nombres ?? "") + " " + (colaborador.Apellidos ?? "")),
-              new Claim(ClaimTypes.GivenName, colaborador.Nombres ?? ""),
-              new Claim(ClaimTypes.Email, colaborador.Email ?? ""),
-              new Claim(ClaimTypes.Role, (colaborador.Rol != null && colaborador.Rol.Nombre == "A") ? "Admin" : "User"),
-              new Claim("ColaboradorId", colaborador.ColaboradorId.ToString()),
-          };
+        var creds = new SigningCredentials(_key, SecurityAlgorithms.HmacSha256);
+        var token = new JwtSecurityToken(
+            issuer: _settings.Issuer,
+            audience: _settings.Audience,
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(_settings.DurationInMinutes),
+            signingCredentials: creds);
 
-            var payload = new JwtPayload(
-                            _settings.Issuer
-                            , _settings.Audience
-                            , claims
-                            , DateTime.UtcNow
-                            , DateTime.UtcNow.AddMinutes(_settings.DurationInMinutes));
-
-            var token = new JwtSecurityToken(header, payload);
-            return new JwtSecurityTokenHandler().WriteToken(token);
-        }
+        return new JwtSecurityTokenHandler().WriteToken(token);
     }
 }
 

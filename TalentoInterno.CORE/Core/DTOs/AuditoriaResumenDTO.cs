@@ -1,10 +1,9 @@
-namespace TalentoInterno.CORE.Core.DTOs;
+﻿namespace TalentoInterno.CORE.Core.DTOs;
 
-public class AuditoriaResumenDTO
+public class AuditoriaResumenDto
 {
-    public string Usuario { get; set; } = null!;
-    public int TotalAcciones { get; set; }
-    public System.Collections.Generic.Dictionary<string, int> AccionesPorTipo { get; set; } = new();
-    public DateTime FechaInicio { get; set; }
-    public DateTime FechaFin { get; set; }
+    public string Usuario { get; set; } = null!; // Email o Nombre
+    public int CantidadAcciones { get; set; }
+    public string UltimaAccion { get; set; } = null!;
+    public DateTime FechaUltimaAccion { get; set; }
 }

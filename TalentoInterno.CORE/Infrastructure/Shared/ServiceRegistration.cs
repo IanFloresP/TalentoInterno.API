@@ -9,7 +9,7 @@ using System.Text;
 using System.Threading.Tasks;
 using TalentoInterno.CORE.Core.Interfaces;
 using TalentoInterno.CORE.Core.Settings;
-using TalentoInterno.CORE.Infrastructure.Shared;
+
 
 namespace UESAN.Ecommerce.CORE.Infrastructure.Shared
 {
@@ -19,7 +19,7 @@ namespace UESAN.Ecommerce.CORE.Infrastructure.Shared
         {
             services.Configure<JWTSettings>(_config.GetSection("JWTSettings"));
 
-            services.AddTransient<IJWTService, JWTService>();
+            services.AddTransient<IJwtService, JwtService>();
 
             var issuer = _config["JWTSettings:Issuer"];
             var audience = _config["JWTSettings:Audience"];

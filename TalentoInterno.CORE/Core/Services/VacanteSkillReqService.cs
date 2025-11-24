@@ -14,7 +14,7 @@ public class VacanteSkillReqService : IVacanteSkillReqService
         _repository = repository;
     }
 
-    public async Task<IEnumerable<VacanteSkillReqGetDTO>> GetSkillsByVacanteAsync(int vacanteId)
+    public async Task<IEnumerable<VacanteSkillReq>> GetAllVacanteSkillReqsAsync()
     {
         var requisitos = await _repository.GetByVacanteIdAsync(vacanteId);
 

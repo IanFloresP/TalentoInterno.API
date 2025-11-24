@@ -3,6 +3,7 @@ using TalentoInterno.CORE.Core.Interfaces;
 using Microsoft.AspNetCore.Authorization;
 using System.Threading.Tasks;
 using System;
+using TalentoInterno.CORE.Core.DTOs;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -39,6 +40,14 @@ public class DashboardController : ControllerBase
         // Reutilizamos la lógica potente de KpiService que ya filtra por fechas
         var kpis = await _kpiService.GetKpiDataAsync(desde, hasta);
         return Ok(kpis);
+    }
+
+    // GET /api/dashboard/analytics
+    [HttpGet("analytics")]
+    public async Task<IActionResult> GetFullAnalytics()
+    {
+        var data = await _dashboardService.GetDashboardDataAsync();
+        return Ok(data);
     }
 
     // 3. GET /dashboard/skills/resumen?area=...
