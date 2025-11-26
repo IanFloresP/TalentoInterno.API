@@ -7,6 +7,7 @@ public partial class Colaborador
 {
     public int ColaboradorId { get; set; }
 
+    public string? DNI { get; set; }
     public string Nombres { get; set; } = null!;
 
     public string Apellidos { get; set; } = null!;
