@@ -24,6 +24,7 @@ public class ColaboradorService : IColaboradorService
         return colaboradores.Select(c => new ColaboradorDTO
         {
             ColaboradorId = c.ColaboradorId,
+            DNI = c.DNI ?? "",
             Nombres = c.Nombres,
             Apellidos = c.Apellidos,
             Email = c.Email,
@@ -49,6 +50,7 @@ public class ColaboradorService : IColaboradorService
         return new ColaboradorDTO
         {
             ColaboradorId = colaborador.ColaboradorId,
+            DNI = colaborador.DNI ?? "",
             Nombres = colaborador.Nombres,
             Apellidos = colaborador.Apellidos,
             Email = colaborador.Email,
@@ -74,6 +76,7 @@ public class ColaboradorService : IColaboradorService
             // 1. Crear el Colaborador (Sin contraseña)
             var colaborador = new Colaborador
             {
+                DNI = dto.DNI,
                 Nombres = dto.Nombres,
                 Apellidos = dto.Apellidos,
                 Email = dto.Email,
@@ -123,6 +126,7 @@ public class ColaboradorService : IColaboradorService
         if (colaborador == null) throw new KeyNotFoundException("Colaborador no encontrado.");
 
         // --- ACTUALIZACIÓN DE DATOS DE COLABORADOR ---
+        colaborador.DNI = dto.DNI;
         colaborador.Nombres = dto.Nombres;
         colaborador.Apellidos = dto.Apellidos;
         colaborador.Email = dto.Email;

@@ -9,6 +9,9 @@ public class ColaboradorCreateDTO
     [Required(ErrorMessage = "El nombre es obligatorio")]
     public string Nombres { get; set; } = null!;
 
+    [Required(ErrorMessage = "El DNI es obligatorio")]
+    public string DNI { get; set; } = null!;
+
     [Required(ErrorMessage = "El apellido es obligatorio")]
     public string Apellidos { get; set; } = null!;
 
