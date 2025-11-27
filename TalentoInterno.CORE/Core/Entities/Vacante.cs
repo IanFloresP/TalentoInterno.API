@@ -17,7 +17,7 @@ public partial class Vacante
 
     public DateOnly? FechaInicio { get; set; }
 
-    public byte UrgenciaId { get; set; }
+    public int UrgenciaId { get; set; }
 
     public string Estado { get; set; } = null!;
 

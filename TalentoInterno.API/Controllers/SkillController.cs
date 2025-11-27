@@ -1,11 +1,13 @@
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.Interfaces;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using TalentoInterno.CORE.Core.DTOs;
 using TalentoInterno.CORE.Core.Entities;
-using System.Collections.Generic;
-using System.Threading.Tasks;
-using System.Linq;
-using Microsoft.AspNetCore.Authorization;
+using TalentoInterno.CORE.Core.Interfaces;
+using TalentoInterno.CORE.Infrastructure.Data;
 
 namespace TalentoInterno.API.Controllers;
 
@@ -15,10 +17,11 @@ namespace TalentoInterno.API.Controllers;
 public class SkillController : ControllerBase
 {
     private readonly ISkillService _skillService;
-
-    public SkillController(ISkillService skillService)
+    private readonly TalentoInternooContext _context;
+    public SkillController(ISkillService skillService, TalentoInternooContext context)
     {
         _skillService = skillService;
+        _context = context;
     }
 
     [HttpGet]
@@ -38,6 +41,18 @@ public class SkillController : ControllerBase
         });
 
         return Ok(skillsDto);
+    }
+    [HttpGet("tiposkill")]
+    public async Task<IActionResult> GetTiposSkill()
+    {
+        var data = await _context.TipoSkill
+            .Select(t => new TipoSkillDto
+            {
+                TipoSkillId = t.TipoSkillId,
+                Nombre = t.Nombre
+            })
+            .ToListAsync();
+        return Ok(data);
     }
 
     [HttpGet("{id}")]

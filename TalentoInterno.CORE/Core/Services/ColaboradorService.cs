@@ -24,7 +24,7 @@ public class ColaboradorService : IColaboradorService
         return colaboradores.Select(c => new ColaboradorDTO
         {
             ColaboradorId = c.ColaboradorId,
-            DNI = c.DNI ?? "",
+            Dni = c.Dni ?? "",
             Nombres = c.Nombres,
             Apellidos = c.Apellidos,
             Email = c.Email,
@@ -50,7 +50,7 @@ public class ColaboradorService : IColaboradorService
         return new ColaboradorDTO
         {
             ColaboradorId = colaborador.ColaboradorId,
-            DNI = colaborador.DNI ?? "",
+            Dni = colaborador.Dni ?? "",
             Nombres = colaborador.Nombres,
             Apellidos = colaborador.Apellidos,
             Email = colaborador.Email,
@@ -71,12 +71,20 @@ public class ColaboradorService : IColaboradorService
     public async Task<Colaborador> CreateColaboradorAsync(ColaboradorCreateDTO dto)
     {
         await using var transaction = await _context.Database.BeginTransactionAsync();
+        // --- VALIDACIÓN DE DNI ÚNICO (NUEVO) ---
+        bool dniExiste = await _context.Colaborador.AnyAsync(c => c.Dni == dto.DNI);
+        if (dniExiste)
+        {
+            throw new InvalidOperationException($"El DNI {dto.DNI} ya está registrado en el sistema.");
+        }
+        // ---------------------------------------
+
         try
         {
             // 1. Crear el Colaborador (Sin contraseña)
             var colaborador = new Colaborador
             {
-                DNI = dto.DNI,
+                Dni = dto.DNI,
                 Nombres = dto.Nombres,
                 Apellidos = dto.Apellidos,
                 Email = dto.Email,
@@ -124,9 +132,18 @@ public class ColaboradorService : IColaboradorService
         // 1. Buscar al Colaborador existente
         var colaborador = await _repository.GetByIdAsync(dto.ColaboradorId);
         if (colaborador == null) throw new KeyNotFoundException("Colaborador no encontrado.");
+        // --- VALIDACIÓN DE DNI ÚNICO AL ACTUALIZAR (NUEVO) ---
+        // Buscamos si existe ALGUIEN MÁS (Id diferente) con el mismo DNI
+        bool dniDuplicado = await _context.Colaborador
+            .AnyAsync(c => c.Dni == dto.Dni && c.ColaboradorId != dto.ColaboradorId);
+
+        if (dniDuplicado)
+        {
+            throw new InvalidOperationException($"El DNI {dto.Dni} ya pertenece a otro colaborador.");
+        }
 
         // --- ACTUALIZACIÓN DE DATOS DE COLABORADOR ---
-        colaborador.DNI = dto.DNI;
+        colaborador.Dni = dto.Dni;
         colaborador.Nombres = dto.Nombres;
         colaborador.Apellidos = dto.Apellidos;
         colaborador.Email = dto.Email;

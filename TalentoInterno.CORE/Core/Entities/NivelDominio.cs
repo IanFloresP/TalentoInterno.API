@@ -5,7 +5,7 @@ namespace TalentoInterno.CORE.Core.Entities;
 
 public partial class NivelDominio
 {
-    public byte NivelId { get; set; }
+    public int NivelId { get; set; }
 
     public string Nombre { get; set; } = null!;
 
