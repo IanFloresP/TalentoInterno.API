@@ -9,7 +9,7 @@ public class ColaboradorSkillCreateDTO
     public int SkillId { get; set; }
 
     [Required]
-    public byte NivelId { get; set; } // Es 'byte' según tu entidad
+    public int NivelId { get; set; } // Es 'byte' según tu entidad
 
     [Range(0, 50)]
     public decimal? AniosExp { get; set; } // Es 'decimal?' según tu entidad

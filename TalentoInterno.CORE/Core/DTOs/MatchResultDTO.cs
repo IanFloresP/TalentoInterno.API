@@ -14,9 +14,9 @@ public class SkillMatchDetalleDTO
 {
     public int SkillId { get; set; }
     public string Nombre { get; set; } = null!;
-    public byte NivelRequeridoId { get; set; }
+    public int NivelRequeridoId { get; set; }
     public string? NivelRequeridoNombre { get; set; } // De VacanteSkillReq.NivelDeseadoNavigation
-    public byte? NivelColaboradorId { get; set; }
+    public int? NivelColaboradorId { get; set; }
     public string? NivelColaboradorNombre { get; set; } // De ColaboradorSkill.Nivel
     public bool CumpleNivel { get; set; }
 }

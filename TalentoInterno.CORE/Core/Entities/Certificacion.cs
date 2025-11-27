@@ -8,7 +8,7 @@ public partial class Certificacion
     public int CertificacionId { get; set; }
 
     public string Nombre { get; set; } = null!;
-    // --- AGREGAS ESTO TÚ MISMO ---
+
     public string? Descripcion { get; set; }
 
     public virtual ICollection<ColaboradorCertificacion> ColaboradorCertificacion { get; set; } = new List<ColaboradorCertificacion>();

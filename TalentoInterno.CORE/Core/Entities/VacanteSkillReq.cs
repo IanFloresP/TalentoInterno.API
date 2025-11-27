@@ -9,7 +9,7 @@ public partial class VacanteSkillReq
 
     public int SkillId { get; set; }
 
-    public byte NivelDeseado { get; set; }
+    public int NivelDeseado { get; set; }
 
     public decimal? Peso { get; set; }
 

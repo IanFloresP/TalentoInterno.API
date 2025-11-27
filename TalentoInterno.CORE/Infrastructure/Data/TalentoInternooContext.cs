@@ -52,6 +52,9 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<VacanteSkillReq> VacanteSkillReq { get; set; }
 
+    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
+#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
+        => optionsBuilder.UseSqlServer("Server=DESKTOP-AMFBBFK;Database=TalentoInternoo;Trusted_Connection=True;Encrypt=False");
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -96,6 +99,9 @@ public partial class TalentoInternooContext : DbContext
 
             entity.HasIndex(e => e.Nombre, "UQ__Certific__75E3EFCF7945A255").IsUnique();
 
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -116,6 +122,10 @@ public partial class TalentoInternooContext : DbContext
                 .HasMaxLength(120)
                 .IsUnicode(false);
             entity.Property(e => e.DisponibleMovilidad).HasDefaultValue(false);
+            entity.Property(e => e.Dni)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("DNI");
             entity.Property(e => e.Email)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -329,7 +339,7 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Titulo)
                 .HasMaxLength(150)
                 .IsUnicode(false);
-            entity.Property(e => e.UrgenciaId).HasDefaultValue((byte)2);
+            entity.Property(e => e.UrgenciaId).HasDefaultValue(2);
 
             entity.HasOne(d => d.Cuenta).WithMany(p => p.Vacante)
                 .HasForeignKey(d => d.CuentaId)

@@ -7,7 +7,6 @@ public partial class Colaborador
 {
     public int ColaboradorId { get; set; }
 
-    public string? DNI { get; set; }
     public string Nombres { get; set; } = null!;
 
     public string Apellidos { get; set; } = null!;
@@ -25,6 +24,8 @@ public partial class Colaborador
     public bool? Activo { get; set; }
 
     public DateOnly? FechaAlta { get; set; }
+
+    public string? Dni { get; set; }
 
     public virtual Area Area { get; set; } = null!;
 

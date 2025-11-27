@@ -294,7 +294,7 @@ internal class MatchPdfDocument : IDocument
                 table.Cell().Element(CellStyle).Text(skill.Nombre);
                 table.Cell().Element(CellStyle).Text(skill.NivelRequeridoNombre);
                 table.Cell().Element(CellStyle).Text(skill.NivelColaboradorNombre ?? "-");
-                table.Cell().Element(CellStyle).Element(c => ComposeBarChart(c, skill.NivelColaboradorId, skill.NivelRequeridoId));
+                table.Cell().Element(CellStyle).Element(c => ComposeBarChart(c, (byte?)skill.NivelColaboradorId, (byte)skill.NivelRequeridoId));
             }
         });
     }

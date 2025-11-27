@@ -5,7 +5,7 @@ namespace TalentoInterno.CORE.Core.DTOs;
 public class ColaboradorDTO
 {
     public int ColaboradorId { get; set; }
-    public string DNI { get; set; } = null!; // <--- NUEVO
+    public string Dni { get; set; } = null!; // <--- NUEVO
     public string Nombres { get; set; } = null!;
     public string Apellidos { get; set; } = null!;
     public string Email { get; set; } = null!;

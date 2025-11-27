@@ -9,7 +9,7 @@ public partial class ColaboradorSkill
 
     public int SkillId { get; set; }
 
-    public byte NivelId { get; set; }
+    public int NivelId { get; set; }
 
     public decimal? AniosExp { get; set; }
 
