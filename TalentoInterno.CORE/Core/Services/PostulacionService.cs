@@ -28,10 +28,23 @@ public class PostulacionService : IPostulacionService
 
     public async Task<IEnumerable<PostulacionDto>> CrearMasivoAsync(CrearPostulacionMasivaDto dto)
     {
-        // 1. Validar que la vacante exista y esté abierta
-        var vacante = await _vacanteRepo.GetByIdAsync(dto.VacanteId);
-        if (vacante == null) throw new Exception("Vacante no encontrada.");
-        if (vacante.Estado != "Abierta") throw new Exception("No se puede postular a una vacante cerrada.");
+        // 0) Validar existencia de vacante y colaborador
+        var vacante = await _context.Vacante.FindAsync(dto.VacanteId);
+        if (vacante == null)
+            throw new KeyNotFoundException($"No existe la vacante con id {dto.VacanteId}.");
+
+        var colaborador = await _context.Colaborador.FindAsync(dto.ColaboradorIds);
+        if (colaborador == null)
+            throw new KeyNotFoundException($"No existe el colaborador con id {dto.ColaboradorIds}.");
+
+        // Opcional: solo permitir postulaciones sobre vacantes abiertas
+        if (!string.IsNullOrEmpty(vacante.Estado) &&
+            !vacante.Estado.Equals("Abierta", StringComparison.OrdinalIgnoreCase))
+        {
+            throw new InvalidOperationException(
+                "No se pueden crear postulaciones para una vacante que no está abierta.");
+        }
+        
 
         // 2. Obtener el Ranking Actualizado (La fuente de la verdad)
         var rankingActual = await _matchingService.GetRankedCandidatesAsync(dto.VacanteId);
@@ -67,6 +80,7 @@ public class PostulacionService : IPostulacionService
             // Guardamos todo en lote
             foreach (var p in nuevasPostulaciones) await _repository.AddAsync(p);
             await _repository.SaveChangesAsync();
+
         }
 
         return await GetPorVacanteAsync(dto.VacanteId);
@@ -132,4 +146,5 @@ public class PostulacionService : IPostulacionService
             Comentarios = p.Comentarios
         };
     }
+
 }
