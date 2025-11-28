@@ -44,22 +44,43 @@ public class VacanteService : IVacanteService
         return vacante;
     }
 
-    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync()
+    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync(int? perfilId = null, int? areaId = null, int? departamentoId = null)
     {
-        var vacantes = await _vacanteRepo.GetAllAsync();
-        return vacantes.Select(v => new VacanteListDTO
+        // 1. Preparar la consulta con Includes
+        var query = _context.Vacante
+            .Include(v => v.Perfil)
+            .Include(v => v.Urgencia)
+            .Include(v => v.Area)         // Asegúrate de que Vacante tenga estas relaciones
+            .Include(v => v.Departamento) // Si no, haz Scaffold de nuevo
+            .AsQueryable();
+
+        // 2. Aplicar Filtros Dinámicos
+        if (perfilId.HasValue)
+            query = query.Where(v => v.PerfilId == perfilId.Value);
+
+        if (areaId.HasValue)
+            query = query.Where(v => v.AreaId == areaId.Value);
+
+        // --- NUEVO FILTRO POR DEPARTAMENTO ---
+        if (departamentoId.HasValue)
+            query = query.Where(v => v.DepartamentoId == departamentoId.Value);
+        // -------------------------------------
+
+        // 3. Proyectar al DTO
+        return await query.Select(v => new VacanteListDTO
         {
             VacanteId = v.VacanteId,
             Titulo = v.Titulo,
             Estado = v.Estado,
-
-            // --- CORRECCIÓN 3 (CS0266) ---
             FechaInicio = v.FechaInicio.GetValueOrDefault(),
 
-            // Si el Perfil existe (no es null), usa su nombre. SINO, usa null.
             PerfilNombre = v.Perfil == null ? null : v.Perfil.Nombre,
-            UrgenciaNombre = v.Urgencia == null ? null : v.Urgencia.Nombre
-        }).ToList();
+            UrgenciaNombre = v.Urgencia == null ? null : v.Urgencia.Nombre,
+
+            // Mapear nombres de Área y Depto
+            AreaNombre = v.Area == null ? null : v.Area.Nombre,
+            DepartamentoNombre = v.Departamento == null ? null : v.Departamento.Nombre
+        }).ToListAsync();
     }
 
     public async Task<Vacante> CreateVacanteAsync(VacanteCreateDTO dto)
@@ -71,6 +92,12 @@ public class VacanteService : IVacanteService
             {
                 Titulo = dto.Titulo,
                 PerfilId = dto.PerfilId,
+
+                // --- NUEVAS ASIGNACIONES ---
+                AreaId = dto.AreaId,
+                DepartamentoId = dto.DepartamentoId,
+                // ---------------------------
+
                 CuentaId = dto.CuentaId,
                 ProyectoId = dto.ProyectoId,
                 FechaInicio = dto.FechaInicio,
@@ -119,8 +146,15 @@ public class VacanteService : IVacanteService
         var vacante = await _vacanteRepo.GetByIdAsync(id);
         if (vacante == null) throw new KeyNotFoundException("Vacante no encontrada");
 
+        // Mapear DTO a entidad
         vacante.Titulo = dto.Titulo;
         vacante.PerfilId = dto.PerfilId;
+
+        // --- NUEVAS ASIGNACIONES ---
+        vacante.AreaId = dto.AreaId;
+        vacante.DepartamentoId = dto.DepartamentoId;
+        // ---------------------------
+
         vacante.CuentaId = dto.CuentaId;
         vacante.ProyectoId = dto.ProyectoId;
         vacante.FechaInicio = dto.FechaInicio;
@@ -129,6 +163,7 @@ public class VacanteService : IVacanteService
         vacante.Descripcion = dto.Descripcion;
 
         await _vacanteRepo.UpdateAsync(vacante);
+        await _vacanteRepo.SaveChangesAsync();
     }
 
     public async Task DeleteVacanteAsync(int id)

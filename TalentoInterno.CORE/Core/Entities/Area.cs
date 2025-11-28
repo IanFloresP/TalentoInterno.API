@@ -14,4 +14,6 @@ public partial class Area
     public virtual ICollection<Colaborador> Colaborador { get; set; } = new List<Colaborador>();
 
     public virtual Departamento? Departamento { get; set; }
+
+    public virtual ICollection<Vacante> Vacante { get; set; } = new List<Vacante>();
 }

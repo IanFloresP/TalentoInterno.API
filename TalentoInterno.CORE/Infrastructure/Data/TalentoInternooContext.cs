@@ -367,9 +367,17 @@ public partial class TalentoInternooContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.UrgenciaId).HasDefaultValue(2);
 
+            entity.HasOne(d => d.Area).WithMany(p => p.Vacante)
+                .HasForeignKey(d => d.AreaId)
+                .HasConstraintName("FK_Vacante_Area");
+
             entity.HasOne(d => d.Cuenta).WithMany(p => p.Vacante)
                 .HasForeignKey(d => d.CuentaId)
                 .HasConstraintName("FK_Vacante_Cuenta");
+
+            entity.HasOne(d => d.Departamento).WithMany(p => p.Vacante)
+                .HasForeignKey(d => d.DepartamentoId)
+                .HasConstraintName("FK_Vacante_Depto");
 
             entity.HasOne(d => d.Perfil).WithMany(p => p.Vacante)
                 .HasForeignKey(d => d.PerfilId)
