@@ -15,5 +15,10 @@ public class VacanteUpdateDTO
     public int UrgenciaId { get; set; }
     [Required]
     public string Estado { get; set; } = null!;
+
+    // --- NUEVOS CAMPOS ---
+    public int? AreaId { get; set; }         // Opcional o [Required] según tu regla
+    public int? DepartamentoId { get; set; } // Opcional o [Required] según tu regla
+    // ---------------------
     public string? Descripcion { get; set; }
 }

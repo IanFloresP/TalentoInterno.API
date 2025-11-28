@@ -12,6 +12,10 @@ public class VacanteCreateDTO
     public DateOnly FechaInicio { get; set; }
     public int UrgenciaId { get; set; }
     public string Estado { get; set; }
+    // --- NUEVOS CAMPOS ---
+    public int? AreaId { get; set; }         // Opcional o [Required] según tu regla
+    public int? DepartamentoId { get; set; } // Opcional o [Required] según tu regla
+    // ---------------------
     public string Descripcion { get; set; } = "";
 
     // HU-06: Aquí se reciben las skills y sus pesos/niveles

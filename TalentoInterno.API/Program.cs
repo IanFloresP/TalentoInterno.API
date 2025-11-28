@@ -93,6 +93,9 @@ builder.Services.AddScoped<TalentoInterno.API.Filters.AuditoriaFilter>();
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
 
+builder.Services.AddScoped<ICertificacionRepository, CertificacionRepository>();
+builder.Services.AddScoped<ICertificacionService, CertificacionService>();
+
 builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddScoped<IKpiService, KpiService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();

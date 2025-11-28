@@ -8,7 +8,8 @@ namespace TalentoInterno.CORE.Core.Services
         Task CerrarVacanteAsync(int vacanteId);
         Task<Vacante> CreateVacanteAsync(VacanteCreateDTO dto);
         Task DeleteVacanteAsync(int id);
-        Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync();
+        // Aceptamos nulos para que el filtro sea opcional
+        Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync(int? perfilId = null, int? areaId = null, int? departamentoId = null);
         Task<VacanteGetDTO?> GetVacanteByIdAsync(int id);
         Task UpdateVacanteAsync(int id, VacanteUpdateDTO dto);
     }

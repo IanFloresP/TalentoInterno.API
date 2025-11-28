@@ -25,9 +25,12 @@ public class VacanteController : ControllerBase
 
     // HU-12: Listar todo
     [HttpGet]
-    public async Task<IActionResult> GetAll()
+    public async Task<IActionResult> GetAll(
+        [FromQuery] int? perfilId,
+        [FromQuery] int? areaId,
+        [FromQuery] int? departamentoId) // <--- ¡NUEVO PARÁMETRO!
     {
-        var vacantes = await _vacanteService.GetAllVacantesAsync();
+        var vacantes = await _vacanteService.GetAllVacantesAsync(perfilId, areaId, departamentoId);
         return Ok(vacantes);
     }
 
