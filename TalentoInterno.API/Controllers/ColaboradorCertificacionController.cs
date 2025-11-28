@@ -26,12 +26,22 @@ public class ColaboradorCertificacionController : ControllerBase
         return Ok(certs);
     }
 
-    [HttpPost("{colaboradorId}")]
-    [Authorize(Roles = "Admin, RRHH")] // Solo ellos pueden agregar
-    public async Task<IActionResult> Add(int colaboradorId, [FromBody] ColaboradorCertificacionCreateDto dto)
+    // AHORA RECIBE UNA LISTA
+    [HttpPost("{colaboradorId}/masivo")]
+    [Authorize(Roles = "Admin, RRHH")]
+    public async Task<IActionResult> AddMany(
+        int colaboradorId,
+        [FromBody] List<ColaboradorCertificacionCreateDto> dtos)
     {
-        await _service.AddCertificacionAsync(colaboradorId, dto);
-        return Ok(new { message = "Certificación agregada exitosamente." });
+        if (dtos == null || dtos.Count == 0)
+            return BadRequest(new { message = "No se enviaron certificaciones." });
+
+        foreach (var dto in dtos)
+        {
+            await _service.AddCertificacionAsync(colaboradorId, dto);
+        }
+
+        return Ok(new { message = "Certificaciones agregadas exitosamente." });
     }
 
     [HttpDelete("{colaboradorId}/{certificacionId}")]
