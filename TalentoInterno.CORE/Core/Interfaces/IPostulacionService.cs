@@ -1,11 +1,15 @@
 ﻿using TalentoInterno.CORE.Core.DTOs;
 
-namespace TalentoInterno.CORE.Core.Interfaces
+namespace TalentoInterno.CORE.Core.Interfaces;
+
+public interface IPostulacionService
 {
-    public interface IPostulacionService
-    {
-        Task<PostulacionDto> CambiarEstadoAsync(int id, string nuevoEstado, string? comentarios);
-        Task<PostulacionDto> CrearAsync(CrearPostulacionDto dto);
-        Task<IEnumerable<PostulacionDto>> GetPorVacanteAsync(int vacanteId);
-    }
+    Task<IEnumerable<PostulacionDto>> GetPorVacanteAsync(int vacanteId);
+
+    // Método masivo inteligente
+    Task<IEnumerable<PostulacionDto>> CrearMasivoAsync(CrearPostulacionMasivaDto dto);
+
+    // Métodos de flujo
+    Task<PostulacionDto> CambiarEstadoAsync(int postulacionId, CambiarEstadoDto dto);
+    Task<PostulacionDto> RechazarAsync(int postulacionId, string motivo);
 }

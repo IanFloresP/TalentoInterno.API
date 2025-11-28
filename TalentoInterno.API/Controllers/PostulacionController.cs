@@ -1,64 +1,72 @@
-﻿using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.DTOs;
-using TalentoInterno.CORE.Core.Entities;
+﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Authorization;
+using TalentoInterno.API.Filters;
 using TalentoInterno.CORE.Core.Interfaces;
-using TalentoInterno.CORE.Core.Services;
+using TalentoInterno.CORE.Core.DTOs;
 
 namespace TalentoInterno.API.Controllers;
 
 [ApiController]
 [Route("api/[controller]")]
-[Authorize(Roles = "Admin, RRHH")] // Solo RRHH gestiona esto
+[Authorize(Roles = "Admin, RRHH")] // Solo gestión
+[ServiceFilter(typeof(AuditoriaFilter))] // Auditoría obligatoria
 public class PostulacionController : ControllerBase
 {
-    private readonly IPostulacionService _postulacionService; // (Necesitas crear este servicio)
-    private readonly IVacanteService _vacanteService;
+    private readonly IPostulacionService _postulacionService;
 
-    public PostulacionController(IPostulacionService postulacionService, IVacanteService vacanteService)
+    public PostulacionController(IPostulacionService postulacionService)
     {
         _postulacionService = postulacionService;
-        _vacanteService = vacanteService;
     }
 
-    // 1. Iniciar proceso con un candidato (POST)
-    [HttpPost]
-    public async Task<IActionResult> PostularCandidato([FromBody] CrearPostulacionDto dto)
+    // 1. Postulación Masiva (Seleccionar varios del ranking)
+    // POST: api/Postulacion/masivo
+    [HttpPost("masivo")]
+    public async Task<IActionResult> PostularMasivo([FromBody] CrearPostulacionMasivaDto dto)
     {
-        var postulacion = await _postulacionService.CrearAsync(dto);
-        return Ok(postulacion);
-    }
-
-    // 2. Cambiar estado (Ej: De "Entrevista" a "Seleccionado")
-    [HttpPut("{id}/estado")]
-    public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoDto dto)
-    {
-        // Actualizamos la postulación
-        var postulacion = await _postulacionService.CambiarEstadoAsync(id, dto.NuevoEstado, dto.Comentarios);
-
-        // --- LÓGICA DE CIERRE AUTOMÁTICO ---
-        if (dto.NuevoEstado == "Seleccionado")
+        try
         {
-            // Si seleccionamos a alguien, cerramos la vacante
-            var vacanteDto = new VacanteUpdateDTO
-            {
-                // Necesitarías obtener los datos actuales de la vacante primero para no borrarlos
-                Estado = "Cerrada"
-                // ... mapear los otros campos requeridos ...
-            };
-
-            // O mejor aún, crear un método específico en IVacanteService: CerrarVacante(id)
-            await _vacanteService.CerrarVacanteAsync(postulacion.VacanteId);
+            var resultados = await _postulacionService.CrearMasivoAsync(dto);
+            return Ok(resultados);
         }
-
-        return Ok(postulacion);
+        catch (Exception ex)
+        {
+            return BadRequest(new { message = ex.Message });
+        }
     }
 
-    // 3. Ver candidatos en proceso por vacante
+    // 2. Ver candidatos en proceso
+    // GET: api/Postulacion/vacante/1
     [HttpGet("vacante/{vacanteId}")]
     public async Task<IActionResult> GetPorVacante(int vacanteId)
     {
         var lista = await _postulacionService.GetPorVacanteAsync(vacanteId);
         return Ok(lista);
+    }
+
+    // 3. Avanzar en el proceso (Entrevista, Seleccionado)
+    // PUT: api/Postulacion/5/estado
+    [HttpPut("{id}/estado")]
+    public async Task<IActionResult> CambiarEstado(int id, [FromBody] CambiarEstadoDto dto)
+    {
+        try
+        {
+            var resultado = await _postulacionService.CambiarEstadoAsync(id, dto);
+            return Ok(resultado);
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
+    }
+
+    // 4. Rechazar candidato
+    // PUT: api/Postulacion/5/rechazar
+    [HttpPut("{id}/rechazar")]
+    public async Task<IActionResult> Rechazar(int id, [FromBody] RechazarCandidatoDto dto)
+    {
+        try
+        {
+            var resultado = await _postulacionService.RechazarAsync(id, dto.MotivoRechazo);
+            return Ok(resultado);
+        }
+        catch (KeyNotFoundException) { return NotFound(); }
     }
 }

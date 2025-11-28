@@ -77,6 +77,18 @@ public class ColaboradorService : IColaboradorService
         {
             throw new InvalidOperationException($"El DNI {dto.DNI} ya está registrado en el sistema.");
         }
+        // --- 2. VALIDACIÓN DE CONSISTENCIA ÁREA-DEPARTAMENTO (NUEVO) ---
+        var area = await _context.Area.FindAsync(dto.AreaId);
+
+        if (area == null)
+            throw new KeyNotFoundException("El Área especificada no existe.");
+
+        if (area.DepartamentoId != dto.DepartamentoId)
+        {
+            throw new InvalidOperationException(
+                $"El Área '{area.Nombre}' no pertenece al Departamento seleccionado. " +
+                $"Pertenece al Departamento ID: {area.DepartamentoId}");
+        }
         // ---------------------------------------
 
         try
@@ -140,6 +152,18 @@ public class ColaboradorService : IColaboradorService
         if (dniDuplicado)
         {
             throw new InvalidOperationException($"El DNI {dto.Dni} ya pertenece a otro colaborador.");
+        }
+        // --- 2. VALIDACIÓN DE CONSISTENCIA ÁREA-DEPARTAMENTO (NUEVO) ---
+        var area = await _context.Area.FindAsync(dto.AreaId);
+
+        if (area == null)
+            throw new KeyNotFoundException("El Área especificada no existe.");
+
+        if (area.DepartamentoId != dto.DepartamentoId)
+        {
+            throw new InvalidOperationException(
+                $"El Área '{area.Nombre}' no pertenece al Departamento seleccionado. " +
+                $"Pertenece al Departamento ID: {area.DepartamentoId}");
         }
 
         // --- ACTUALIZACIÓN DE DATOS DE COLABORADOR ---
