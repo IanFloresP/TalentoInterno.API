@@ -18,6 +18,7 @@ public class ColaboradorSkillRepository : IColaboradorSkillRepository
     {
         return await _context.ColaboradorSkill
             .Include(cs => cs.Skill)
+                .ThenInclude(s => s.TipoSkill) 
             .Include(cs => cs.Nivel)
             .Where(cs => cs.ColaboradorId == colaboradorId)
             .ToListAsync();
