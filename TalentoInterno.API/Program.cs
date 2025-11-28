@@ -60,6 +60,9 @@ builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
 builder.Services.AddScoped<IAreaRepository, AreaRepository>();
 builder.Services.AddScoped<IAreaService, AreaService>();
 
+builder.Services.AddScoped<IPostulacionRepository, PostulacionRepository>();
+builder.Services.AddScoped<IPostulacionService, PostulacionService>();
+
 builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
 builder.Services.AddScoped<INivelDominioService, NivelDominioService>();
 

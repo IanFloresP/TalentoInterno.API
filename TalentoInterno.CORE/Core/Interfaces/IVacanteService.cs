@@ -5,6 +5,7 @@ namespace TalentoInterno.CORE.Core.Services
 {
     public interface IVacanteService
     {
+        Task CerrarVacanteAsync(int vacanteId);
         Task<Vacante> CreateVacanteAsync(VacanteCreateDTO dto);
         Task DeleteVacanteAsync(int id);
         Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync();

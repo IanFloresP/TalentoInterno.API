@@ -71,7 +71,7 @@ public class MatchingService : IMatchingService
                     Nombre = req.Skill.Nombre,
                     NivelRequeridoId = req.NivelDeseado,
                     NivelRequeridoNombre = req.NivelDeseadoNavigation?.Nombre,
-                    NivelColaboradorId = colabSkill.NivelId,
+                    NivelColaboradorId = colabSkill?.NivelId,
                     NivelColaboradorNombre = colabSkill?.Nivel?.Nombre,
                     CumpleNivel = cumpleNivel
                 };

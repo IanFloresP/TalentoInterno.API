@@ -27,6 +27,8 @@ public partial class Vacante
 
     public virtual Perfil Perfil { get; set; } = null!;
 
+    public virtual ICollection<Postulacion> Postulacion { get; set; } = new List<Postulacion>();
+
     public virtual Proyecto? Proyecto { get; set; }
 
     public virtual Urgencia Urgencia { get; set; } = null!;
