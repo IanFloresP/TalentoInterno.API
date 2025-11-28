@@ -140,10 +140,12 @@ public class VacanteController : ControllerBase
         {
             decimal matchedWeight = 0m;
             var skillsDto = new List<ColaboradorSkillDto>();
+            bool tieneFalloCritico = false;
             foreach (var r in reqs)
             {
                 var cs = c.ColaboradorSkill.FirstOrDefault(x => x.SkillId == r.SkillId);
                 var weight = r.Peso ?? 1m;
+                bool cumple = false;
                 if (cs != null)
                 {
                     skillsDto.Add(new ColaboradorSkillDto
@@ -158,11 +160,25 @@ public class VacanteController : ControllerBase
                     if (cs.NivelId >= r.NivelDeseado)
                     {
                         matchedWeight += weight;
+                        cumple = true;
                     }
+
+                }
+                if (!cumple && (r.Critico == true))
+                {
+                    tieneFalloCritico = true;
                 }
             }
-
-            var score = totalWeight == 0 ? 0 : (matchedWeight / totalWeight) * 100m;
+            // 3. CÁLCULO FINAL MODIFICADO
+            decimal score;
+            if (tieneFalloCritico)
+            {
+                score = 0; // Si falló una crítica, su nota es 0 automáticamente.
+            }
+            else
+            {
+                score = totalWeight == 0 ? 0 : (matchedWeight / totalWeight) * 100m;
+            }
 
             candidates.Add(new MatchingCandidateDto
             {
@@ -193,7 +209,7 @@ public class VacanteController : ControllerBase
     }
 
     // internal helper to reuse matching computation
-    private async Task<List<MatchingCandidateDto>> GetMatchingCandidatesInternal(int id)
+    public async Task<List<MatchingCandidateDto>> GetMatchingCandidatesInternal(int id)
     {
         var reqs = (await _vacanteSkillReqService.GetSkillsByVacanteAsync(id)).ToList();
         if (!reqs.Any()) return new List<MatchingCandidateDto>();
@@ -221,10 +237,12 @@ public class VacanteController : ControllerBase
         {
             decimal matchedWeight = 0m;
             var skillsDto = new List<ColaboradorSkillDto>();
+            bool tieneFalloCritico = false;
             foreach (var r in reqs)
             {
                 var cs = c.ColaboradorSkill.FirstOrDefault(x => x.SkillId == r.SkillId);
                 var weight = r.Peso ?? 1m;
+                bool cumple = false;
                 if (cs != null)
                 {
                     skillsDto.Add(new ColaboradorSkillDto
@@ -239,11 +257,25 @@ public class VacanteController : ControllerBase
                     if (cs.NivelId >= r.NivelDeseado)
                     {
                         matchedWeight += weight;
+                        cumple = true;
                     }
+
+                }
+                if (!cumple && (r.Critico == true))
+                {
+                    tieneFalloCritico = true;
                 }
             }
-
-            var score = totalWeight == 0 ? 0 : (matchedWeight / totalWeight) * 100m;
+            // 3. CÁLCULO FINAL MODIFICADO
+            decimal score;
+            if (tieneFalloCritico)
+            {
+                score = 0; // Si falló una crítica, su nota es 0 automáticamente.
+            }
+            else
+            {
+                score = totalWeight == 0 ? 0 : (matchedWeight / totalWeight) * 100m;
+            }
 
             candidates.Add(new MatchingCandidateDto
             {
