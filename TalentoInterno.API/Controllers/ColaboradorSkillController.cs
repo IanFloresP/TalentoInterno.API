@@ -7,6 +7,7 @@ namespace TalentoInterno.API.Controllers;
 
 [ApiController]
 [Route("api/ColaboradorSkill")]
+[Authorize(Roles = "Admin, RRHH, Business Manager")]
 public class ColaboradorSkillController : ControllerBase
 {
     private readonly IColaboradorSkillService _colaboradorSkillService;
@@ -25,6 +26,8 @@ public class ColaboradorSkillController : ControllerBase
             ColaboradorId = s.ColaboradorId,
             SkillId = s.SkillId,
             SkillNombre = s.Skill?.Nombre,
+            TipoSkillId = s.Skill?.TipoSkillId ?? 0,
+            TipoSkillNombre = s.Skill?.TipoSkill?.Nombre,
             NivelId = s.NivelId,
             NivelNombre = s.Nivel?.Nombre,
             AniosExp = s.AniosExp
