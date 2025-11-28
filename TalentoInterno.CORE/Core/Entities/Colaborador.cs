@@ -35,6 +35,8 @@ public partial class Colaborador
 
     public virtual Departamento Departamento { get; set; } = null!;
 
+    public virtual ICollection<Postulacion> Postulacion { get; set; } = new List<Postulacion>();
+
     public virtual Rol Rol { get; set; } = null!;
 
     public virtual ICollection<Usuario> Usuario { get; set; } = new List<Usuario>();

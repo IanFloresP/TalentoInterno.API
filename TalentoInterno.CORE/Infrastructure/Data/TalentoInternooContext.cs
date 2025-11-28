@@ -36,6 +36,8 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<Perfil> Perfil { get; set; }
 
+    public virtual DbSet<Postulacion> Postulacion { get; set; }
+
     public virtual DbSet<Proyecto> Proyecto { get; set; }
 
     public virtual DbSet<Rol> Rol { get; set; }
@@ -231,6 +233,30 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(120)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Postulacion>(entity =>
+        {
+            entity.HasKey(e => e.PostulacionId).HasName("PK__Postulac__5F6D89A959D6DEE6");
+
+            entity.Property(e => e.Estado)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("En Revision");
+            entity.Property(e => e.FechaPostulacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.MatchScore).HasColumnType("decimal(5, 2)");
+
+            entity.HasOne(d => d.Colaborador).WithMany(p => p.Postulacion)
+                .HasForeignKey(d => d.ColaboradorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Postulacion_Colaborador");
+
+            entity.HasOne(d => d.Vacante).WithMany(p => p.Postulacion)
+                .HasForeignKey(d => d.VacanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Postulacion_Vacante");
         });
 
         modelBuilder.Entity<Proyecto>(entity =>

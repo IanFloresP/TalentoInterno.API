@@ -135,4 +135,11 @@ public class VacanteService : IVacanteService
     {
         await _vacanteRepo.DeleteAsync(id);
     }
+    public async Task CerrarVacanteAsync(int vacanteId)
+    {
+        var vacante = await _vacanteRepo.GetByIdAsync(vacanteId);
+        if (vacante == null) throw new KeyNotFoundException("Vacante no encontrada");
+        vacante.Estado = "Cerrada"; // O el estado que corresponda
+        await _vacanteRepo.UpdateAsync(vacante);
+    }
 }
