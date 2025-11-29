@@ -86,7 +86,7 @@ public class ExportacionService : IExportacionService
         using (var package = new ExcelPackage())
         {
             var worksheet = package.Workbook.Worksheets.Add("Brechas");
-            var colorAzul = System.Drawing.Color.FromArgb(31, 78, 121); 
+            var colorAzul = System.Drawing.Color.FromArgb(31, 78, 121);
             var colorRojo = System.Drawing.Color.Red;
             var colorVerde = System.Drawing.Color.FromArgb(0, 176, 80); // Verde excel
 
@@ -159,7 +159,7 @@ public class ExportacionService : IExportacionService
     {
         try
         {
-            
+
 
             using (var package = new ExcelPackage())
             {
@@ -201,129 +201,178 @@ public class ExportacionService : IExportacionService
         }
     }
 
-    
-    
 
-    // --- IMPLEMENTACIÓN DE PDF ---
     public Task<byte[]> GenerarMatchPdf(MatchResultDTO matchData, ColaboradorDTO? colaboradorData)
     {
         QuestPDF.Settings.License = LicenseType.Community;
+
         var document = new MatchPdfDocument(matchData, colaboradorData);
         byte[] fileBytes = document.GeneratePdf();
         return Task.FromResult(fileBytes);
     }
 }
 
-// --- CLASE AUXILIAR PARA EL PDF (NECESARIA PARA COMPILAR) ---
+
+// --- CLASE AUXILIAR PARA EL PDF (DISEÑO MEJORADO) ---
 internal class MatchPdfDocument : IDocument
-{
-    private readonly MatchResultDTO _data;
-    private readonly ColaboradorDTO? _colaborador;
-    private const int MaxNivel = 5;
-
-    public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
     {
-        _data = data;
-        _colaborador = colaborador;
-    }
+        private readonly MatchResultDTO _data;
+        private readonly ColaboradorDTO? _colaborador;
+        private const float MaxNivel = 3f; // ESCALA AJUSTADA A 3
 
-    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
-
-    public void Compose(IDocumentContainer container)
-    {
-        container.Page(page =>
+        public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
         {
-            page.Margin(50);
-            page.DefaultTextStyle(x => x.FontSize(10));
-            page.Header().Element(ComposeHeader);
-            page.Content().Element(ComposeContent);
-            page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
-        });
-    }
+            _data = data;
+            _colaborador = colaborador;
+        }
 
-    void ComposeHeader(IContainer container)
-    {
-        string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
-        container.Row(row =>
+        public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
+        public void Compose(IDocumentContainer container)
         {
-            row.RelativeItem().Column(col =>
+            container.Page(page =>
             {
-                col.Item().Text("Reporte de Match").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
-                col.Item().Text($"Vacante ID: {_data.VacanteId}");
-                col.Item().Text(nombre).Bold();
+                page.Margin(50);
+                page.DefaultTextStyle(x => x.FontSize(10));
+                page.Header().Element(ComposeHeader);
+                page.Content().Element(ComposeContent);
+                page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
             });
+        }
 
-            row.RelativeItem().Column(col =>
-            {
-                col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F2}%").Bold().FontSize(28).FontColor(Colors.Blue.Medium);
-            });
-        });
-    }
-
-    void ComposeContent(IContainer container)
-    {
-        container.PaddingVertical(20).Column(col =>
+        void ComposeHeader(IContainer container)
         {
-            col.Spacing(15);
-            col.Item().Text("Habilidades Cumplidas").Bold().FontSize(14).FontColor(Colors.Green.Medium);
-            ComposeTable(col.Item(), _data.SkillsQueCumple);
-            col.Item().Text("Habilidades Faltantes").Bold().FontSize(14).FontColor(Colors.Red.Medium);
-            ComposeTable(col.Item(), _data.SkillsFaltantes);
-        });
-    }
+            string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
 
-    void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
-    {
-        container.Table(table =>
-        {
-            table.ColumnsDefinition(columns =>
+            container.Row(row =>
             {
-                columns.RelativeColumn(2); columns.RelativeColumn(1); columns.RelativeColumn(1); columns.RelativeColumn(2);
+                row.RelativeItem().Column(col =>
+                {
+                    col.Item().Text("Reporte de Compatibilidad").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
+                    col.Item().Text($"Vacante ID: {_data.VacanteId}").FontSize(12);
+                    col.Item().Text(nombre).Bold().FontSize(14);
+                });
+
+                row.RelativeItem().Column(col =>
+                {
+                    col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F0}%").Bold().FontSize(32).FontColor(_data.PorcentajeMatch >= 80 ? Colors.Green.Medium : _data.PorcentajeMatch >= 50 ? Colors.Orange.Medium : Colors.Red.Medium);
+                    col.Item().AlignCenter().Text("Match Total");
+                });
             });
+        }
 
-            table.Header(header =>
-            {
-                header.Cell().Element(CellStyle).Text("Habilidad").Bold();
-                header.Cell().Element(CellStyle).Text("N. Req").Bold();
-                header.Cell().Element(CellStyle).Text("N. Actual").Bold();
-                header.Cell().Element(CellStyle).Text("Brecha").Bold();
-            });
-
-            foreach (var skill in skills ?? Enumerable.Empty<SkillMatchDetalleDTO>())
-            {
-                table.Cell().Element(CellStyle).Text(skill.Nombre);
-                table.Cell().Element(CellStyle).Text(skill.NivelRequeridoNombre);
-                table.Cell().Element(CellStyle).Text(skill.NivelColaboradorNombre ?? "-");
-                table.Cell().Element(CellStyle).Element(c => ComposeBarChart(c, (byte?)skill.NivelColaboradorId, (byte)skill.NivelRequeridoId));
-            }
-        });
-    }
-
-    IContainer CellStyle(IContainer container)
-    {
-        return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten2).Padding(5);
-    }
-
-    void ComposeBarChart(IContainer container, byte? nivelColaborador, byte nivelRequerido)
-    {
-        float colab = (float)(nivelColaborador ?? 0);
-        float max = 5f;
-
-        container.Row(row =>
+        void ComposeContent(IContainer container)
         {
-            float porcentaje = colab / max;
-            if (porcentaje > 1f) porcentaje = 1f;
+            container.PaddingVertical(20).Column(col =>
+            {
+                col.Spacing(20);
 
-            if (porcentaje <= 0f)
+                // Tabla Unificada (Más limpio)
+                col.Item().Text("Detalle de Habilidades").Bold().FontSize(16).FontColor(Colors.Blue.Darken2);
+
+                // Unimos las listas para mostrar todo junto
+                var todasLasSkills = _data.SkillsQueCumple.Concat(_data.SkillsFaltantes).OrderBy(s => s.Nombre);
+
+                ComposeTable(col.Item(), todasLasSkills);
+            });
+        }
+
+        void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
+        {
+            container.Table(table =>
             {
-                row.RelativeItem(1f).Height(10).Background(Colors.Grey.Lighten3);
-            }
-            else
+                // Definición de Columnas: Agregamos columna para % Brecha
+                table.ColumnsDefinition(columns =>
+                {
+                    columns.RelativeColumn(2);   // Habilidad
+                    columns.RelativeColumn(1);   // N. Req
+                    columns.RelativeColumn(1);   // N. Act
+                    columns.RelativeColumn(1);   // Brecha % (Texto)
+                    columns.RelativeColumn(3);   // Gráfico Visual
+                });
+
+                // Encabezados
+                table.Header(header =>
+                {
+                    header.Cell().Element(CellStyle).Text("Habilidad").Bold();
+                    header.Cell().Element(CellStyle).AlignCenter().Text("Req").Bold();
+                    header.Cell().Element(CellStyle).AlignCenter().Text("Actual").Bold();
+                    header.Cell().Element(CellStyle).AlignCenter().Text("Brecha").Bold();
+                    header.Cell().Element(CellStyle).Text("Análisis Visual").Bold();
+                });
+
+                foreach (var skill in skills)
+                {
+                    float colab = (float)(skill.NivelColaboradorId ?? 0);
+                    float req = (float)skill.NivelRequeridoId;
+
+                    // Cálculo de Brecha para mostrar
+                    float brechaRaw = (req - colab) / MaxNivel;
+                    string textoBrecha = brechaRaw <= 0 ? "OK" : $"-{brechaRaw:P0}";
+                    var colorTexto = brechaRaw <= 0 ? Colors.Green.Medium : Colors.Red.Medium;
+
+                    table.Cell().Element(CellStyle).Text(skill.Nombre);
+                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelRequeridoNombre);
+                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelColaboradorNombre ?? "-");
+
+                    // Columna de Porcentaje Texto
+                    table.Cell().Element(CellStyle).AlignCenter().Text(textoBrecha).FontColor(colorTexto).Bold();
+
+                    // Columna Gráfica
+                    table.Cell().Element(CellStyle).Element(c => ComposeSmartBarChart(c, colab, req));
+                }
+            });
+        }
+
+        IContainer CellStyle(IContainer container)
+        {
+            return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten3).PaddingVertical(8).PaddingHorizontal(4);
+        }
+
+        // --- NUEVO GRÁFICO INTELIGENTE ---
+        void ComposeSmartBarChart(IContainer container, float colab, float req)
+        {
+            container.Column(col =>
             {
-                string colorHex = colab >= nivelRequerido ? Colors.Green.Medium : Colors.Red.Medium;
-                row.RelativeItem(porcentaje).Height(10).Background(colorHex);
-                row.RelativeItem(1f - porcentaje).Height(10).Background(Colors.Grey.Lighten3);
-            }
-        });
+                col.Item().Height(12).Row(row =>
+                {
+                    // CASO 1: CUMPLE O SUPERA (Verde)
+                    if (colab >= req)
+                    {
+                        // Barra hasta lo requerido (Verde Normal)
+                        row.RelativeItem(req).Background(Colors.Green.Medium);
+
+                        // Barra de "Exceso" (Verde Oscuro) si sabe más
+                        if (colab > req)
+                        {
+                            row.RelativeItem(colab - req).Background(Colors.Green.Darken2);
+                        }
+
+                        // Espacio vacío restante
+                        if (MaxNivel > colab)
+                        {
+                            row.RelativeItem(MaxNivel - colab).Background(Colors.Grey.Lighten3);
+                        }
+                    }
+                    // CASO 2: FALTA (Rojo)
+                    else
+                    {
+                        // Barra de lo que TIENE (Rojo)
+                        if (colab > 0)
+                        {
+                            row.RelativeItem(colab).Background(Colors.Red.Medium);
+                        }
+
+                        // Barra de la BRECHA (Rosado/Rojo Claro) - Lo que le falta para llegar
+                        row.RelativeItem(req - colab).Background(Colors.Red.Lighten4).Border(1).BorderColor(Colors.Red.Medium);
+
+                        // Espacio vacío restante hasta el máximo
+                        if (MaxNivel > req)
+                        {
+                            row.RelativeItem(MaxNivel - req).Background(Colors.Grey.Lighten3);
+                        }
+                    }
+                });
+            });
+        }
     }
-}
