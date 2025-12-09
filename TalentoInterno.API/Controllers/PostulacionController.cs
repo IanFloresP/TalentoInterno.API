@@ -69,4 +69,14 @@ public class PostulacionController : ControllerBase
         }
         catch (KeyNotFoundException) { return NotFound(); }
     }
+
+    // ✅ NUEVO: filtrar por estado global
+    // GET: api/Postulacion/estado/En Revision
+    [HttpGet("estado/{estado}")]
+    public async Task<IActionResult> GetPorEstado(string estado)
+    {
+        var lista = await _postulacionService.GetPorEstadoAsync(estado);
+        return Ok(lista);
+    }
+
 }

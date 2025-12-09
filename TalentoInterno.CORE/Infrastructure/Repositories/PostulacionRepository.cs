@@ -55,4 +55,72 @@ public class PostulacionRepository : IPostulacionRepository
     {
         await _context.SaveChangesAsync();
     }
+
+    public async Task<IEnumerable<Postulacion>> GetByEstadoAsync(string estado)
+    {
+        if (string.IsNullOrWhiteSpace(estado))
+            return new List<Postulacion>();
+
+        var e = estado.Trim().ToLower();
+
+        IQueryable<Postulacion> query = _context.Postulacion
+            .Include(p => p.Vacante)
+            .Include(p => p.Colaborador);
+
+        // 🔥 NO uses funciones propias aquí dentro del Where
+        // ✅ Solo expresiones traducibles a SQL
+
+        if (e.Contains("revisi")) // cubre "En Revision" y "En Revisión"
+        {
+            query = query.Where(p =>
+                p.Estado != null &&
+                (
+                    p.Estado.Contains("Revision") ||
+                    p.Estado.Contains("Revisión") ||
+                    p.Estado.Contains("REVISION") ||
+                    p.Estado.Contains("REVISIÓN")
+                )
+            );
+        }
+        else if (e.Contains("entrevista"))
+        {
+            query = query.Where(p =>
+                p.Estado != null &&
+                (p.Estado.Contains("Entrevista") || p.Estado.Contains("ENTREVISTA"))
+            );
+        }
+        else if (e.Contains("seleccion"))
+        {
+            query = query.Where(p =>
+                p.Estado != null &&
+                (p.Estado.Contains("Seleccionado") || p.Estado.Contains("SELECCIONADO"))
+            );
+        }
+        else if (e.Contains("rechaz"))
+        {
+            query = query.Where(p =>
+                p.Estado != null &&
+                (p.Estado.Contains("Rechazado") || p.Estado.Contains("RECHAZADO"))
+            );
+        }
+        else
+        {
+            // fallback seguro
+            query = query.Where(p => p.Estado != null && p.Estado.ToLower() == e);
+        }
+
+        return await query
+            .OrderByDescending(p => p.MatchScore)
+            .ToListAsync();
+    }
+
+    public async Task<IEnumerable<Postulacion>> GetAllByVacanteIdAsync(int vacanteId)
+    {
+        return await _context.Postulacion
+            .Where(p => p.VacanteId == vacanteId)
+            .ToListAsync();
+    }
+
+
+
 }

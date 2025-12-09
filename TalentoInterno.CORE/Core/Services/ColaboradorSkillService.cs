@@ -155,7 +155,9 @@ public class ColaboradorSkillService : IColaboradorSkillService
                 double brecha = 0;
                 if (nivelReq > nivelAct)
                 {
-                    brecha = (double)(nivelReq - nivelAct) / 3.0;
+                    var ratio = (double)(nivelReq - nivelAct) / 3.0;
+                    brecha = Math.Round(ratio * 100, 2);
+
                 }
 
                 listaBrechas.Add(new BrechaSkillDto

@@ -12,4 +12,6 @@ public interface IPostulacionService
     // Métodos de flujo
     Task<PostulacionDto> CambiarEstadoAsync(int postulacionId, CambiarEstadoDto dto);
     Task<PostulacionDto> RechazarAsync(int postulacionId, string motivo);
+
+    Task<IEnumerable<PostulacionDto>> GetPorEstadoAsync(string estado);
 }
