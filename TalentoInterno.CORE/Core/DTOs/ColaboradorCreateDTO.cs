@@ -9,7 +9,9 @@ public class ColaboradorCreateDTO
     [Required(ErrorMessage = "El nombre es obligatorio")]
     public string Nombres { get; set; } = null!;
 
-    [Required(ErrorMessage = "El DNI es obligatorio")]
+    [Required(ErrorMessage = "El DNI es obligatorio.")]
+    [StringLength(8, MinimumLength = 8, ErrorMessage = "El DNI debe tener exactamente 8 dígitos.")]
+    [RegularExpression("^[0-9]*$", ErrorMessage = "El DNI solo debe contener números.")]
     public string DNI { get; set; } = null!;
 
     [Required(ErrorMessage = "El apellido es obligatorio")]

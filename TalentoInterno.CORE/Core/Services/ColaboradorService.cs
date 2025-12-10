@@ -73,9 +73,17 @@ public class ColaboradorService : IColaboradorService
         await using var transaction = await _context.Database.BeginTransactionAsync();
         // --- VALIDACIÓN DE DNI ÚNICO (NUEVO) ---
         bool dniExiste = await _context.Colaborador.AnyAsync(c => c.Dni == dto.DNI);
+
+        var existeEmail = await _context.Colaborador
+                                   .AnyAsync(c => c.Email == dto.Email);
+
         if (dniExiste)
         {
             throw new InvalidOperationException($"El DNI {dto.DNI} ya está registrado en el sistema.");
+        }
+        if (existeEmail)
+        {
+            throw new InvalidOperationException($"El correo {dto.Email} ya está registrado.");
         }
         // --- 2. VALIDACIÓN DE CONSISTENCIA ÁREA-DEPARTAMENTO (NUEVO) ---
         var area = await _context.Area.FindAsync(dto.AreaId);
@@ -148,10 +156,15 @@ public class ColaboradorService : IColaboradorService
         // Buscamos si existe ALGUIEN MÁS (Id diferente) con el mismo DNI
         bool dniDuplicado = await _context.Colaborador
             .AnyAsync(c => c.Dni == dto.Dni && c.ColaboradorId != dto.ColaboradorId);
-
+        var existeEmail = await _context.Colaborador
+                                    .AnyAsync(c => c.Email == dto.Email);
         if (dniDuplicado)
         {
             throw new InvalidOperationException($"El DNI {dto.Dni} ya pertenece a otro colaborador.");
+        }
+        if (existeEmail)
+        {
+            throw new InvalidOperationException($"El correo {dto.Email} ya está registrado.");
         }
         // --- 2. VALIDACIÓN DE CONSISTENCIA ÁREA-DEPARTAMENTO (NUEVO) ---
         var area = await _context.Area.FindAsync(dto.AreaId);

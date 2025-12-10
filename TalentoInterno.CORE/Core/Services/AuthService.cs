@@ -63,7 +63,7 @@ public class AuthService : IAuthService
             .Include(u => u.Rol) // Incluir el Rol para el token
             .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-        if (usuario == null) throw new Exception("Usuario no encontrado.");
+        if (usuario == null) throw new Exception("Usuario noo encontrado.");
 
         // 2. Verificar Contraseña (Hash)
         bool passwordValida = BCrypt.Net.BCrypt.Verify(loginDto.Password, usuario.PasswordHash);
