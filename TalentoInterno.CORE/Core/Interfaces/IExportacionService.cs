@@ -9,6 +9,5 @@ namespace TalentoInterno.CORE.Core.Interfaces
         Task<byte[]> GenerarKpisExcel(KpiReportDto kpiData, DateTime? desde, DateTime? hasta);
         Task<byte[]> GenerarMatchPdf(MatchResultDTO matchData, ColaboradorDTO? colaboradorData);
         Task<byte[]> GenerarRankingExcel(IEnumerable<MatchResultDTO> rankingData);
-        Task EnviarCorreoPersonalizadoAsync(EmailComposeDto correoDto);
     }
 }

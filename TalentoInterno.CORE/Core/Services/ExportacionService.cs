@@ -1,5 +1,4 @@
 ﻿// --- LIBRERÍAS DE EXCEL ---
-using Microsoft.Extensions.Configuration;
 using OfficeOpenXml;
 using OfficeOpenXml.Style;
 // --- LIBRERÍAS DE PDF ---
@@ -11,8 +10,6 @@ using System.Collections.Generic;
 using System.Drawing; // Para System.Drawing.Color
 using System.Globalization;
 using System.Linq;
-using System.Net;
-using System.Net.Mail;
 using System.Reflection;
 using System.Threading.Tasks;
 using TalentoInterno.CORE.Core.DTOs;
@@ -22,10 +19,9 @@ namespace TalentoInterno.CORE.Core.Services;
 
 public class ExportacionService : IExportacionService
 {
-    private readonly IConfiguration _config;
-    public ExportacionService(IConfiguration config)
+    // --- La licencia debe ser establecida estáticamente una vez ---
+    static ExportacionService()
     {
-        _config = config;
         // Esto soluciona los errores de inicialización y asegura el uso no comercial
         ExcelPackage.License.SetNonCommercialPersonal("TalentoInterno User");
     }
@@ -224,247 +220,170 @@ public class ExportacionService : IExportacionService
         byte[] fileBytes = document.GeneratePdf();
         return Task.FromResult(fileBytes);
     }
+}
 
 
+// --- CLASE AUXILIAR PARA EL PDF (DISEÑO MEJORADO) ---
+internal class MatchPdfDocument : IDocument
+{
+    private readonly MatchResultDTO _data;
+    private readonly ColaboradorDTO? _colaborador;
+    private const float MaxNivel = 3f; // ESCALA AJUSTADA A 3
 
-    public async Task EnviarCorreoPersonalizadoAsync(EmailComposeDto correoDto)
+    public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
     {
-        // 1. Preparamos los datos del servidor (Usando _config correctamente)
-        var emailEmisor = _config["EmailSettings:Email"]!;
-        var passwordEmisor = _config["EmailSettings:Password"]!;
-        var host = _config["EmailSettings:Host"]!;
-        var port = int.Parse(_config["EmailSettings:Port"]!);
-
-        // 2. DEFINIMOS LA PLANTILLA HTML (El diseño bonito)
-        string plantillaHtml = @"
-    <!DOCTYPE html>
-    <html>
-    <head>
-        <style>
-            body { font-family: Arial, sans-serif; background-color: #f4f4f4; }
-            .container { max-width: 600px; margin: 20px auto; background-color: #ffffff; padding: 20px; }
-            .header { background-color: #0056b3; color: white; padding: 10px; text-align: center; }
-            .content { padding: 20px; color: #333; }
-        </style>
-    </head>
-    <body>
-        <div class='container'>
-            <div class='header'>
-                <h2>Talento Interno</h2>
-            </div>
-            <div class='content'>
-                [CUERPO_DEL_MENSAJE]
-            </div>
-            <div style='text-align:center; font-size:12px; color:#777;'>
-                <p>Mensaje automático del sistema
-                    TATA CONSULTANCY SERVICES</p>
-            </div>
-        </div>
-    </body>
-    </html>";
-
-        // PROCESAMIENTO SEGURO
-        string textoUsuario = correoDto.Cuerpo ?? "";
-        string textoHtml = textoUsuario.Replace("\n", "<br>"); // Saltos de línea
-
-        // AQUÍ ESTÁ EL ARREGLO: Usamos Replace en lugar de string.Format
-        // Esto no se confunde con las llaves { } del CSS
-        string cuerpoFinal = plantillaHtml.Replace("[CUERPO_DEL_MENSAJE]", textoHtml);
-
-        using (var client = new SmtpClient(host, port))
-        {
-            client.EnableSsl = true;
-            client.Credentials = new NetworkCredential(emailEmisor, passwordEmisor);
-
-            using (var mailMessage = new MailMessage())
-            {
-                mailMessage.From = new MailAddress(emailEmisor, "Talento Interno");
-                mailMessage.To.Add(correoDto.Destinatario);
-                mailMessage.Subject = correoDto.Asunto;
-                mailMessage.Body = cuerpoFinal;
-                mailMessage.IsBodyHtml = true;
-
-                // Adjuntos (Igual que antes)
-                if (correoDto.Adjuntos != null && correoDto.Adjuntos.Count > 0)
-                {
-                    foreach (var archivo in correoDto.Adjuntos)
-                    {
-                        if (archivo.Length > 0)
-                        {
-                            mailMessage.Attachments.Add(new Attachment(archivo.OpenReadStream(), archivo.FileName));
-                        }
-                    }
-                }
-
-                await client.SendMailAsync(mailMessage);
-            }
-        }
+        _data = data;
+        _colaborador = colaborador;
     }
 
-    // --- CLASE AUXILIAR PARA EL PDF (DISEÑO MEJORADO) ---
-    internal class MatchPdfDocument : IDocument
+    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
+    public void Compose(IDocumentContainer container)
     {
-        private readonly MatchResultDTO _data;
-        private readonly ColaboradorDTO? _colaborador;
-        private const float MaxNivel = 3f; // ESCALA AJUSTADA A 3
-
-        public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
+        container.Page(page =>
         {
-            _data = data;
-            _colaborador = colaborador;
-        }
+            page.Margin(50);
+            page.DefaultTextStyle(x => x.FontSize(10));
+            page.Header().Element(ComposeHeader);
+            page.Content().Element(ComposeContent);
+            page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
+        });
+    }
 
-        public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+    void ComposeHeader(IContainer container)
+    {
+        string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
 
-        public void Compose(IDocumentContainer container)
+        container.Row(row =>
         {
-            container.Page(page =>
+            row.RelativeItem().Column(col =>
             {
-                page.Margin(50);
-                page.DefaultTextStyle(x => x.FontSize(10));
-                page.Header().Element(ComposeHeader);
-                page.Content().Element(ComposeContent);
-                page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
+                col.Item().Text("Reporte de Compatibilidad").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
+                col.Item().Text($"Vacante ID: {_data.VacanteId}").FontSize(12);
+                col.Item().Text(nombre).Bold().FontSize(14);
             });
-        }
 
-        void ComposeHeader(IContainer container)
-        {
-            string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
-
-            container.Row(row =>
+            row.RelativeItem().Column(col =>
             {
-                row.RelativeItem().Column(col =>
-                {
-                    col.Item().Text("Reporte de Compatibilidad").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
-                    col.Item().Text($"Vacante ID: {_data.VacanteId}").FontSize(12);
-                    col.Item().Text(nombre).Bold().FontSize(14);
-                });
-
-                row.RelativeItem().Column(col =>
-                {
-                    col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F0}%").Bold().FontSize(32).FontColor(_data.PorcentajeMatch >= 80 ? Colors.Green.Medium : _data.PorcentajeMatch >= 50 ? Colors.Orange.Medium : Colors.Red.Medium);
-                    col.Item().AlignCenter().Text("Match Total");
-                });
+                col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F0}%").Bold().FontSize(32).FontColor(_data.PorcentajeMatch >= 80 ? Colors.Green.Medium : _data.PorcentajeMatch >= 50 ? Colors.Orange.Medium : Colors.Red.Medium);
+                col.Item().AlignCenter().Text("Match Total");
             });
-        }
+        });
+    }
 
-        void ComposeContent(IContainer container)
+    void ComposeContent(IContainer container)
+    {
+        container.PaddingVertical(20).Column(col =>
         {
-            container.PaddingVertical(20).Column(col =>
+            col.Spacing(20);
+
+            // Tabla Unificada (Más limpio)
+            col.Item().Text("Detalle de Habilidades").Bold().FontSize(16).FontColor(Colors.Blue.Darken2);
+
+            // Unimos las listas para mostrar todo junto
+            var todasLasSkills = _data.SkillsQueCumple.Concat(_data.SkillsFaltantes).OrderBy(s => s.Nombre);
+
+            ComposeTable(col.Item(), todasLasSkills);
+        });
+    }
+
+    void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
+    {
+        container.Table(table =>
+        {
+            // Definición de Columnas: Agregamos columna para % Brecha
+            table.ColumnsDefinition(columns =>
             {
-                col.Spacing(20);
-
-                // Tabla Unificada (Más limpio)
-                col.Item().Text("Detalle de Habilidades").Bold().FontSize(16).FontColor(Colors.Blue.Darken2);
-
-                // Unimos las listas para mostrar todo junto
-                var todasLasSkills = _data.SkillsQueCumple.Concat(_data.SkillsFaltantes).OrderBy(s => s.Nombre);
-
-                ComposeTable(col.Item(), todasLasSkills);
+                columns.RelativeColumn(2);   // Habilidad
+                columns.RelativeColumn(1);   // N. Req
+                columns.RelativeColumn(1);   // N. Act
+                columns.RelativeColumn(1);   // Brecha % (Texto)
+                columns.RelativeColumn(3);   // Gráfico Visual
             });
-        }
 
-        void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
-        {
-            container.Table(table =>
+            // Encabezados
+            table.Header(header =>
             {
-                // Definición de Columnas: Agregamos columna para % Brecha
-                table.ColumnsDefinition(columns =>
+                header.Cell().Element(CellStyle).Text("Habilidad").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Req").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Actual").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Brecha").Bold();
+                header.Cell().Element(CellStyle).Text("Análisis Visual").Bold();
+            });
+
+            foreach (var skill in skills)
+            {
+                float colab = (float)(skill.NivelColaboradorId ?? 0);
+                float req = (float)skill.NivelRequeridoId;
+
+                // Cálculo de Brecha para mostrar
+                float brechaRaw = (req - colab) / MaxNivel;
+                string textoBrecha = brechaRaw <= 0 ? "OK" : $"-{brechaRaw:P0}";
+                var colorTexto = brechaRaw <= 0 ? Colors.Green.Medium : Colors.Red.Medium;
+
+                table.Cell().Element(CellStyle).Text(skill.Nombre);
+                table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelRequeridoNombre);
+                table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelColaboradorNombre ?? "-");
+
+                // Columna de Porcentaje Texto
+                table.Cell().Element(CellStyle).AlignCenter().Text(textoBrecha).FontColor(colorTexto).Bold();
+
+                // Columna Gráfica
+                table.Cell().Element(CellStyle).Element(c => ComposeSmartBarChart(c, colab, req));
+            }
+        });
+    }
+
+    IContainer CellStyle(IContainer container)
+    {
+        return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten3).PaddingVertical(8).PaddingHorizontal(4);
+    }
+
+    // --- NUEVO GRÁFICO INTELIGENTE ---
+    void ComposeSmartBarChart(IContainer container, float colab, float req)
+    {
+        container.Column(col =>
+        {
+            col.Item().Height(12).Row(row =>
+            {
+                // CASO 1: CUMPLE O SUPERA (Verde)
+                if (colab >= req)
                 {
-                    columns.RelativeColumn(2);   // Habilidad
-                    columns.RelativeColumn(1);   // N. Req
-                    columns.RelativeColumn(1);   // N. Act
-                    columns.RelativeColumn(1);   // Brecha % (Texto)
-                    columns.RelativeColumn(3);   // Gráfico Visual
-                });
+                    // Barra hasta lo requerido (Verde Normal)
+                    row.RelativeItem(req).Background(Colors.Green.Medium);
 
-                // Encabezados
-                table.Header(header =>
+                    // Barra de "Exceso" (Verde Oscuro) si sabe más
+                    if (colab > req)
+                    {
+                        row.RelativeItem(colab - req).Background(Colors.Green.Darken2);
+                    }
+
+                    // Espacio vacío restante
+                    if (MaxNivel > colab)
+                    {
+                        row.RelativeItem(MaxNivel - colab).Background(Colors.Grey.Lighten3);
+                    }
+                }
+                // CASO 2: FALTA (Rojo)
+                else
                 {
-                    header.Cell().Element(CellStyle).Text("Habilidad").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Req").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Actual").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Brecha").Bold();
-                    header.Cell().Element(CellStyle).Text("Análisis Visual").Bold();
-                });
+                    // Barra de lo que TIENE (Rojo)
+                    if (colab > 0)
+                    {
+                        row.RelativeItem(colab).Background(Colors.Red.Medium);
+                    }
 
-                foreach (var skill in skills)
-                {
-                    float colab = (float)(skill.NivelColaboradorId ?? 0);
-                    float req = (float)skill.NivelRequeridoId;
+                    // Barra de la BRECHA (Rosado/Rojo Claro) - Lo que le falta para llegar
+                    row.RelativeItem(req - colab).Background(Colors.Red.Lighten4).Border(1).BorderColor(Colors.Red.Medium);
 
-                    // Cálculo de Brecha para mostrar
-                    float brechaRaw = (req - colab) / MaxNivel;
-                    string textoBrecha = brechaRaw <= 0 ? "OK" : $"-{brechaRaw:P0}";
-                    var colorTexto = brechaRaw <= 0 ? Colors.Green.Medium : Colors.Red.Medium;
-
-                    table.Cell().Element(CellStyle).Text(skill.Nombre);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelRequeridoNombre);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelColaboradorNombre ?? "-");
-
-                    // Columna de Porcentaje Texto
-                    table.Cell().Element(CellStyle).AlignCenter().Text(textoBrecha).FontColor(colorTexto).Bold();
-
-                    // Columna Gráfica
-                    table.Cell().Element(CellStyle).Element(c => ComposeSmartBarChart(c, colab, req));
+                    // Espacio vacío restante hasta el máximo
+                    if (MaxNivel > req)
+                    {
+                        row.RelativeItem(MaxNivel - req).Background(Colors.Grey.Lighten3);
+                    }
                 }
             });
-        }
-
-        IContainer CellStyle(IContainer container)
-        {
-            return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten3).PaddingVertical(8).PaddingHorizontal(4);
-        }
-
-        // --- NUEVO GRÁFICO INTELIGENTE ---
-        void ComposeSmartBarChart(IContainer container, float colab, float req)
-        {
-            container.Column(col =>
-            {
-                col.Item().Height(12).Row(row =>
-                {
-                    // CASO 1: CUMPLE O SUPERA (Verde)
-                    if (colab >= req)
-                    {
-                        // Barra hasta lo requerido (Verde Normal)
-                        row.RelativeItem(req).Background(Colors.Green.Medium);
-
-                        // Barra de "Exceso" (Verde Oscuro) si sabe más
-                        if (colab > req)
-                        {
-                            row.RelativeItem(colab - req).Background(Colors.Green.Darken2);
-                        }
-
-                        // Espacio vacío restante
-                        if (MaxNivel > colab)
-                        {
-                            row.RelativeItem(MaxNivel - colab).Background(Colors.Grey.Lighten3);
-                        }
-                    }
-                    // CASO 2: FALTA (Rojo)
-                    else
-                    {
-                        // Barra de lo que TIENE (Rojo)
-                        if (colab > 0)
-                        {
-                            row.RelativeItem(colab).Background(Colors.Red.Medium);
-                        }
-
-                        // Barra de la BRECHA (Rosado/Rojo Claro) - Lo que le falta para llegar
-                        row.RelativeItem(req - colab).Background(Colors.Red.Lighten4).Border(1).BorderColor(Colors.Red.Medium);
-
-                        // Espacio vacío restante hasta el máximo
-                        if (MaxNivel > req)
-                        {
-                            row.RelativeItem(MaxNivel - req).Background(Colors.Grey.Lighten3);
-                        }
-                    }
-                });
-            });
-        }
-
-
+        });
     }
 }
 

@@ -15,28 +15,13 @@ public class AuthService : IAuthService
     private readonly TalentoInternooContext _context;
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthService> _logger;
-    private readonly string _secretKey;
-    private readonly string _issuer;
-    private readonly string _audience;
-    private readonly double _durationMinutes;
+    private readonly IConfiguration _configuration;
     public AuthService(IJwtService jwtService, ILogger<AuthService> logger, IConfiguration configuration, TalentoInternooContext context)
     {
         _jwtService = jwtService;
         _logger = logger;
+        _configuration = configuration;
         _context = context;
-
-        // --- 2. CARGAMOS Y VALIDAMOS EN EL CONSTRUCTOR ---
-        // Esto se ejecuta una sola vez al iniciarse el servicio.
-
-        _secretKey = configuration["JwtSettings:SecretKey"] ?? "";
-        _issuer = configuration["JwtSettings:Issuer"] ?? "";
-        _audience = configuration["JwtSettings:Audience"] ?? "";
-
-        // Validamos la clave AQUÍ, al principio.
-        if (_secretKey.Length < 32)
-        {
-            throw new Exception("ERROR CRÍTICO: La 'SecretKey' en appsettings.json debe tener al menos 32 caracteres.");
-        }
     }
     public LoginResponseDTO Login(LoginRequestDTO request)
     {
@@ -102,8 +87,8 @@ public class AuthService : IAuthService
 
     private string GenerarJwtToken(Entities.Usuario usuario)
     {
-
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey!));
+        var secretKey = _configuration["JwtSettings:SecretKey"];
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -117,12 +102,12 @@ public class AuthService : IAuthService
         ;
 
         var token = new JwtSecurityToken(
-             issuer: _issuer,       // Variable global
-             audience: _audience,   // Variable global
-             claims: claims,
-             expires: DateTime.UtcNow.AddMinutes(_durationMinutes), // Variable global
-             signingCredentials: creds
-         );
+            issuer: _configuration["JwtSettings:Issuer"],
+            audience: _configuration["JwtSettings:Audience"],
+            claims: claims,
+            expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:DurationInMinutes"]!)),
+            signingCredentials: creds
+        );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }
