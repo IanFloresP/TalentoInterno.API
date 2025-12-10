@@ -28,7 +28,7 @@ public class VacanteController : ControllerBase
     public async Task<IActionResult> GetAll(
         [FromQuery] int? perfilId,
         [FromQuery] int? areaId,
-        [FromQuery] int? departamentoId) // <--- ¡NUEVO PARÁMETRO!
+        [FromQuery] int? departamentoId) 
     {
         var vacantes = await _vacanteService.GetAllVacantesAsync(perfilId, areaId, departamentoId);
         return Ok(vacantes);
