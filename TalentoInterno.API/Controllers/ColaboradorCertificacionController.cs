@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.DTOs;
-using Microsoft.AspNetCore.Authorization;
-using TalentoInterno.CORE.Core.Entities;
-using TalentoInterno.CORE.Core.Services;
-
-namespace TalentoInterno.API.Controllers;
+using TalentoInterno.CORE.Core.Interfaces;
 
 [ApiController]
 [Route("api/ColaboradorCertificacion")]
@@ -27,8 +23,7 @@ public class ColaboradorCertificacionController : ControllerBase
     }
 
     // AHORA RECIBE UNA LISTA
-    [HttpPost("{colaboradorId}/masivo")]
-    [Authorize(Roles = "Admin, RRHH")]
+    [HttpPost("{colaboradorId}")]
     public async Task<IActionResult> AddMany(
         int colaboradorId,
         [FromBody] List<ColaboradorCertificacionCreateDto> dtos)
@@ -45,7 +40,6 @@ public class ColaboradorCertificacionController : ControllerBase
     }
 
     [HttpDelete("{colaboradorId}/{certificacionId}")]
-    [Authorize(Roles = "Admin, RRHH")]
     public async Task<IActionResult> Delete(int colaboradorId, int certificacionId)
     {
         await _service.RemoveCertificacionAsync(colaboradorId, certificacionId);

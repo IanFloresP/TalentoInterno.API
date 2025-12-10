@@ -33,12 +33,15 @@ public class ExportacionService : IExportacionService
             var worksheet = package.Workbook.Worksheets.Add("Ranking de Candidatos");
             var colorAzul = System.Drawing.Color.FromArgb(31, 78, 121);
 
-            worksheet.Cells["A1"].Value = "ID Colaborador";
-            worksheet.Cells["B1"].Value = "Porcentaje Match";
-            worksheet.Cells["C1"].Value = "Skills Cumplidas";
-            worksheet.Cells["D1"].Value = "Skills Faltantes";
+            // ✅ NUEVOS HEADERS
+            worksheet.Cells["A1"].Value = "Colaborador";
+            worksheet.Cells["B1"].Value = "ID Colaborador";
+            worksheet.Cells["C1"].Value = "Porcentaje Match";
+            worksheet.Cells["D1"].Value = "Skills Cumplidas";
+            worksheet.Cells["E1"].Value = "Skills Faltantes";
 
-            using (var range = worksheet.Cells["A1:D1"])
+            // ✅ ESTILO HEADER
+            using (var range = worksheet.Cells["A1:E1"])
             {
                 range.Style.Font.Bold = true;
                 range.Style.Fill.PatternType = ExcelFillStyle.Solid;
@@ -50,17 +53,24 @@ public class ExportacionService : IExportacionService
             int row = 2;
             foreach (var candidato in rankingData ?? Enumerable.Empty<MatchResultDTO>())
             {
-                worksheet.Cells[row, 1].Value = candidato.ColaboradorId;
-                worksheet.Cells[row, 2].Value = candidato.PorcentajeMatch / 100.0;
-                worksheet.Cells[row, 2].Style.Numberformat.Format = "0.00%";
-                worksheet.Cells[row, 2].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+                // ✅ USAR NOMBRE YA EXISTENTE EN DTO
+                worksheet.Cells[row, 1].Value = candidato.Nombre ?? "—";
+                worksheet.Cells[row, 2].Value = candidato.ColaboradorId;
 
-                worksheet.Cells[row, 3].Value = string.Join(", ", candidato.SkillsQueCumple?.Select(s => s.Nombre) ?? Enumerable.Empty<string>());
-                worksheet.Cells[row, 4].Value = string.Join(", ", candidato.SkillsFaltantes?.Select(s => s.Nombre) ?? Enumerable.Empty<string>());
+                worksheet.Cells[row, 3].Value = candidato.PorcentajeMatch / 100.0;
+                worksheet.Cells[row, 3].Style.Numberformat.Format = "0.00%";
+                worksheet.Cells[row, 3].Style.HorizontalAlignment = ExcelHorizontalAlignment.Center;
+
+                worksheet.Cells[row, 4].Value =
+                    string.Join(", ", candidato.SkillsQueCumple?.Select(s => s.Nombre) ?? Enumerable.Empty<string>());
+
+                worksheet.Cells[row, 5].Value =
+                    string.Join(", ", candidato.SkillsFaltantes?.Select(s => s.Nombre) ?? Enumerable.Empty<string>());
 
                 row++;
             }
 
+            // ✅ AUTOFIT + BORDES
             if (worksheet.Dimension != null)
             {
                 worksheet.Cells[worksheet.Dimension.Address].AutoFitColumns();
@@ -215,164 +225,165 @@ public class ExportacionService : IExportacionService
 
 // --- CLASE AUXILIAR PARA EL PDF (DISEÑO MEJORADO) ---
 internal class MatchPdfDocument : IDocument
+{
+    private readonly MatchResultDTO _data;
+    private readonly ColaboradorDTO? _colaborador;
+    private const float MaxNivel = 3f; // ESCALA AJUSTADA A 3
+
+    public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
     {
-        private readonly MatchResultDTO _data;
-        private readonly ColaboradorDTO? _colaborador;
-        private const float MaxNivel = 3f; // ESCALA AJUSTADA A 3
+        _data = data;
+        _colaborador = colaborador;
+    }
 
-        public MatchPdfDocument(MatchResultDTO data, ColaboradorDTO? colaborador)
+    public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+
+    public void Compose(IDocumentContainer container)
+    {
+        container.Page(page =>
         {
-            _data = data;
-            _colaborador = colaborador;
-        }
+            page.Margin(50);
+            page.DefaultTextStyle(x => x.FontSize(10));
+            page.Header().Element(ComposeHeader);
+            page.Content().Element(ComposeContent);
+            page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
+        });
+    }
 
-        public DocumentMetadata GetMetadata() => DocumentMetadata.Default;
+    void ComposeHeader(IContainer container)
+    {
+        string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
 
-        public void Compose(IDocumentContainer container)
+        container.Row(row =>
         {
-            container.Page(page =>
+            row.RelativeItem().Column(col =>
             {
-                page.Margin(50);
-                page.DefaultTextStyle(x => x.FontSize(10));
-                page.Header().Element(ComposeHeader);
-                page.Content().Element(ComposeContent);
-                page.Footer().AlignCenter().Text(x => x.CurrentPageNumber());
+                col.Item().Text("Reporte de Compatibilidad").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
+                col.Item().Text($"Vacante ID: {_data.VacanteId}").FontSize(12);
+                col.Item().Text(nombre).Bold().FontSize(14);
             });
-        }
 
-        void ComposeHeader(IContainer container)
-        {
-            string nombre = _colaborador != null ? $"{_colaborador.Nombres} {_colaborador.Apellidos}" : $"Colaborador ID: {_data.ColaboradorId}";
-
-            container.Row(row =>
+            row.RelativeItem().Column(col =>
             {
-                row.RelativeItem().Column(col =>
-                {
-                    col.Item().Text("Reporte de Compatibilidad").Bold().FontSize(20).FontColor(Colors.Blue.Medium);
-                    col.Item().Text($"Vacante ID: {_data.VacanteId}").FontSize(12);
-                    col.Item().Text(nombre).Bold().FontSize(14);
-                });
-
-                row.RelativeItem().Column(col =>
-                {
-                    col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F0}%").Bold().FontSize(32).FontColor(_data.PorcentajeMatch >= 80 ? Colors.Green.Medium : _data.PorcentajeMatch >= 50 ? Colors.Orange.Medium : Colors.Red.Medium);
-                    col.Item().AlignCenter().Text("Match Total");
-                });
+                col.Item().AlignCenter().Text($"{_data.PorcentajeMatch:F0}%").Bold().FontSize(32).FontColor(_data.PorcentajeMatch >= 80 ? Colors.Green.Medium : _data.PorcentajeMatch >= 50 ? Colors.Orange.Medium : Colors.Red.Medium);
+                col.Item().AlignCenter().Text("Match Total");
             });
-        }
+        });
+    }
 
-        void ComposeContent(IContainer container)
+    void ComposeContent(IContainer container)
+    {
+        container.PaddingVertical(20).Column(col =>
         {
-            container.PaddingVertical(20).Column(col =>
+            col.Spacing(20);
+
+            // Tabla Unificada (Más limpio)
+            col.Item().Text("Detalle de Habilidades").Bold().FontSize(16).FontColor(Colors.Blue.Darken2);
+
+            // Unimos las listas para mostrar todo junto
+            var todasLasSkills = _data.SkillsQueCumple.Concat(_data.SkillsFaltantes).OrderBy(s => s.Nombre);
+
+            ComposeTable(col.Item(), todasLasSkills);
+        });
+    }
+
+    void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
+    {
+        container.Table(table =>
+        {
+            // Definición de Columnas: Agregamos columna para % Brecha
+            table.ColumnsDefinition(columns =>
             {
-                col.Spacing(20);
-
-                // Tabla Unificada (Más limpio)
-                col.Item().Text("Detalle de Habilidades").Bold().FontSize(16).FontColor(Colors.Blue.Darken2);
-
-                // Unimos las listas para mostrar todo junto
-                var todasLasSkills = _data.SkillsQueCumple.Concat(_data.SkillsFaltantes).OrderBy(s => s.Nombre);
-
-                ComposeTable(col.Item(), todasLasSkills);
+                columns.RelativeColumn(2);   // Habilidad
+                columns.RelativeColumn(1);   // N. Req
+                columns.RelativeColumn(1);   // N. Act
+                columns.RelativeColumn(1);   // Brecha % (Texto)
+                columns.RelativeColumn(3);   // Gráfico Visual
             });
-        }
 
-        void ComposeTable(IContainer container, IEnumerable<SkillMatchDetalleDTO> skills)
-        {
-            container.Table(table =>
+            // Encabezados
+            table.Header(header =>
             {
-                // Definición de Columnas: Agregamos columna para % Brecha
-                table.ColumnsDefinition(columns =>
+                header.Cell().Element(CellStyle).Text("Habilidad").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Req").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Actual").Bold();
+                header.Cell().Element(CellStyle).AlignCenter().Text("Brecha").Bold();
+                header.Cell().Element(CellStyle).Text("Análisis Visual").Bold();
+            });
+
+            foreach (var skill in skills)
+            {
+                float colab = (float)(skill.NivelColaboradorId ?? 0);
+                float req = (float)skill.NivelRequeridoId;
+
+                // Cálculo de Brecha para mostrar
+                float brechaRaw = (req - colab) / MaxNivel;
+                string textoBrecha = brechaRaw <= 0 ? "OK" : $"-{brechaRaw:P0}";
+                var colorTexto = brechaRaw <= 0 ? Colors.Green.Medium : Colors.Red.Medium;
+
+                table.Cell().Element(CellStyle).Text(skill.Nombre);
+                table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelRequeridoNombre);
+                table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelColaboradorNombre ?? "-");
+
+                // Columna de Porcentaje Texto
+                table.Cell().Element(CellStyle).AlignCenter().Text(textoBrecha).FontColor(colorTexto).Bold();
+
+                // Columna Gráfica
+                table.Cell().Element(CellStyle).Element(c => ComposeSmartBarChart(c, colab, req));
+            }
+        });
+    }
+
+    IContainer CellStyle(IContainer container)
+    {
+        return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten3).PaddingVertical(8).PaddingHorizontal(4);
+    }
+
+    // --- NUEVO GRÁFICO INTELIGENTE ---
+    void ComposeSmartBarChart(IContainer container, float colab, float req)
+    {
+        container.Column(col =>
+        {
+            col.Item().Height(12).Row(row =>
+            {
+                // CASO 1: CUMPLE O SUPERA (Verde)
+                if (colab >= req)
                 {
-                    columns.RelativeColumn(2);   // Habilidad
-                    columns.RelativeColumn(1);   // N. Req
-                    columns.RelativeColumn(1);   // N. Act
-                    columns.RelativeColumn(1);   // Brecha % (Texto)
-                    columns.RelativeColumn(3);   // Gráfico Visual
-                });
+                    // Barra hasta lo requerido (Verde Normal)
+                    row.RelativeItem(req).Background(Colors.Green.Medium);
 
-                // Encabezados
-                table.Header(header =>
+                    // Barra de "Exceso" (Verde Oscuro) si sabe más
+                    if (colab > req)
+                    {
+                        row.RelativeItem(colab - req).Background(Colors.Green.Darken2);
+                    }
+
+                    // Espacio vacío restante
+                    if (MaxNivel > colab)
+                    {
+                        row.RelativeItem(MaxNivel - colab).Background(Colors.Grey.Lighten3);
+                    }
+                }
+                // CASO 2: FALTA (Rojo)
+                else
                 {
-                    header.Cell().Element(CellStyle).Text("Habilidad").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Req").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Actual").Bold();
-                    header.Cell().Element(CellStyle).AlignCenter().Text("Brecha").Bold();
-                    header.Cell().Element(CellStyle).Text("Análisis Visual").Bold();
-                });
+                    // Barra de lo que TIENE (Rojo)
+                    if (colab > 0)
+                    {
+                        row.RelativeItem(colab).Background(Colors.Red.Medium);
+                    }
 
-                foreach (var skill in skills)
-                {
-                    float colab = (float)(skill.NivelColaboradorId ?? 0);
-                    float req = (float)skill.NivelRequeridoId;
+                    // Barra de la BRECHA (Rosado/Rojo Claro) - Lo que le falta para llegar
+                    row.RelativeItem(req - colab).Background(Colors.Red.Lighten4).Border(1).BorderColor(Colors.Red.Medium);
 
-                    // Cálculo de Brecha para mostrar
-                    float brechaRaw = (req - colab) / MaxNivel;
-                    string textoBrecha = brechaRaw <= 0 ? "OK" : $"-{brechaRaw:P0}";
-                    var colorTexto = brechaRaw <= 0 ? Colors.Green.Medium : Colors.Red.Medium;
-
-                    table.Cell().Element(CellStyle).Text(skill.Nombre);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelRequeridoNombre);
-                    table.Cell().Element(CellStyle).AlignCenter().Text(skill.NivelColaboradorNombre ?? "-");
-
-                    // Columna de Porcentaje Texto
-                    table.Cell().Element(CellStyle).AlignCenter().Text(textoBrecha).FontColor(colorTexto).Bold();
-
-                    // Columna Gráfica
-                    table.Cell().Element(CellStyle).Element(c => ComposeSmartBarChart(c, colab, req));
+                    // Espacio vacío restante hasta el máximo
+                    if (MaxNivel > req)
+                    {
+                        row.RelativeItem(MaxNivel - req).Background(Colors.Grey.Lighten3);
+                    }
                 }
             });
-        }
-
-        IContainer CellStyle(IContainer container)
-        {
-            return container.BorderBottom(1).BorderColor(Colors.Grey.Lighten3).PaddingVertical(8).PaddingHorizontal(4);
-        }
-
-        // --- NUEVO GRÁFICO INTELIGENTE ---
-        void ComposeSmartBarChart(IContainer container, float colab, float req)
-        {
-            container.Column(col =>
-            {
-                col.Item().Height(12).Row(row =>
-                {
-                    // CASO 1: CUMPLE O SUPERA (Verde)
-                    if (colab >= req)
-                    {
-                        // Barra hasta lo requerido (Verde Normal)
-                        row.RelativeItem(req).Background(Colors.Green.Medium);
-
-                        // Barra de "Exceso" (Verde Oscuro) si sabe más
-                        if (colab > req)
-                        {
-                            row.RelativeItem(colab - req).Background(Colors.Green.Darken2);
-                        }
-
-                        // Espacio vacío restante
-                        if (MaxNivel > colab)
-                        {
-                            row.RelativeItem(MaxNivel - colab).Background(Colors.Grey.Lighten3);
-                        }
-                    }
-                    // CASO 2: FALTA (Rojo)
-                    else
-                    {
-                        // Barra de lo que TIENE (Rojo)
-                        if (colab > 0)
-                        {
-                            row.RelativeItem(colab).Background(Colors.Red.Medium);
-                        }
-
-                        // Barra de la BRECHA (Rosado/Rojo Claro) - Lo que le falta para llegar
-                        row.RelativeItem(req - colab).Background(Colors.Red.Lighten4).Border(1).BorderColor(Colors.Red.Medium);
-
-                        // Espacio vacío restante hasta el máximo
-                        if (MaxNivel > req)
-                        {
-                            row.RelativeItem(MaxNivel - req).Background(Colors.Grey.Lighten3);
-                        }
-                    }
-                });
-            });
-        }
+        });
     }
+}
+

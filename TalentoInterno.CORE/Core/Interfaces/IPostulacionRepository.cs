@@ -10,5 +10,10 @@ namespace TalentoInterno.CORE.Core.Interfaces
         Task<IEnumerable<Postulacion>> GetByVacanteIdAsync(int vacanteId);
         Task SaveChangesAsync();
         Task UpdateAsync(Postulacion postulacion);
+
+        Task<IEnumerable<Postulacion>> GetByEstadoAsync(string estado);
+
+        Task<IEnumerable<Postulacion>> GetAllByVacanteIdAsync(int vacanteId);
+
     }
 }
