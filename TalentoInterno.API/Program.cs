@@ -43,7 +43,7 @@ builder.Services.AddScoped<IColaboradorRepository, ColaboradorRepository>();
 builder.Services.AddScoped<IColaboradorService, ColaboradorService>();
 
 builder.Services.AddScoped<IColaboradorCertificacionRepository, ColaboradorCertificacionRepository>();
-builder.Services.AddScoped<IColaboradorCertificacionService,  ColaboradorCertificacionService>();
+builder.Services.AddScoped<IColaboradorCertificacionService, ColaboradorCertificacionService>();
 
 builder.Services.AddScoped<IDepartamentoRepository, DepartamentoRepository>();
 builder.Services.AddScoped<IDepartamentoService, DepartamentoService>();
@@ -60,6 +60,9 @@ builder.Services.AddScoped<IVacanteSkillReqService, VacanteSkillReqService>();
 builder.Services.AddScoped<IAreaRepository, AreaRepository>();
 builder.Services.AddScoped<IAreaService, AreaService>();
 
+builder.Services.AddScoped<IPostulacionRepository, PostulacionRepository>();
+builder.Services.AddScoped<IPostulacionService, PostulacionService>();
+
 builder.Services.AddScoped<INivelDominioRepository, NivelDominioRepository>();
 builder.Services.AddScoped<INivelDominioService, NivelDominioService>();
 
@@ -69,10 +72,8 @@ builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<ISkillRepository, SkillRepository>();
 builder.Services.AddScoped<ISkillService, SkillService>();
 
-// Program.cs - register implementation
-builder.Services.AddScoped<IJwtService, JwtService>();
-// Optional: bind settings
 builder.Services.Configure<JWTSettings>(builder.Configuration.GetSection("JwtSettings"));
+builder.Services.AddScoped<IJwtService, JwtService>();
 
 builder.Services.AddScoped<IMatchingService, MatchingService>();
 
@@ -90,6 +91,9 @@ builder.Services.AddScoped<TalentoInterno.API.Filters.AuditoriaFilter>();
 builder.Services.AddScoped<IColaboradorSkillService, ColaboradorSkillService>();
 builder.Services.AddScoped<IColaboradorSkillRepository, ColaboradorSkillRepository>();
 
+builder.Services.AddScoped<ICertificacionRepository, CertificacionRepository>();
+builder.Services.AddScoped<ICertificacionService, CertificacionService>();
+
 builder.Services.AddScoped<IAlertaService, AlertaService>();
 builder.Services.AddScoped<IKpiService, KpiService>();
 builder.Services.AddScoped<IDashboardService, DashboardService>();
@@ -101,7 +105,7 @@ builder.Services.AddCors(options =>
     options.AddPolicy("AllowFrontend",
         policy =>
         {
-            policy.WithOrigins("http://localhost:5066") // <-- Cambia esto por la URL de tu frontend
+            policy.WithOrigins("http://localhost:9000") // <-- Cambia esto por la URL de tu frontend
                   .AllowAnyHeader()
                   .AllowAnyMethod();
         });
@@ -135,7 +139,7 @@ var app = builder.Build();
 
 
 
-app.UseHttpsRedirection();
+//app.UseHttpsRedirection();
 
 app.UseCors("AllowFrontend");
 

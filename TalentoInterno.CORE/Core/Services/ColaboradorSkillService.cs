@@ -149,13 +149,15 @@ public class ColaboradorSkillService : IColaboradorSkillService
             {
                 var skillColab = colab.ColaboradorSkill.FirstOrDefault(s => s.SkillId == req.SkillId);
 
-                byte nivelReq = req.NivelDeseado;
-                byte nivelAct = skillColab?.NivelId ?? 0;
+                int nivelReq = req.NivelDeseado;
+                int nivelAct = skillColab?.NivelId ?? 0;
 
                 double brecha = 0;
                 if (nivelReq > nivelAct)
                 {
-                    brecha = (double)(nivelReq - nivelAct) / 5.0;
+                    var ratio = (double)(nivelReq - nivelAct) / 3.0;
+                    brecha = Math.Round(ratio * 100, 2);
+
                 }
 
                 listaBrechas.Add(new BrechaSkillDto

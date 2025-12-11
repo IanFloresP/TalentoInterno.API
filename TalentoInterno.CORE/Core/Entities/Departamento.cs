@@ -12,4 +12,6 @@ public partial class Departamento
     public virtual ICollection<Area> Area { get; set; } = new List<Area>();
 
     public virtual ICollection<Colaborador> Colaborador { get; set; } = new List<Colaborador>();
+
+    public virtual ICollection<Vacante> Vacante { get; set; } = new List<Vacante>();
 }

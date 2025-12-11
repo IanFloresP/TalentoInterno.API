@@ -44,22 +44,29 @@ public class VacanteService : IVacanteService
         return vacante;
     }
 
-    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync()
+    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync(int? perfilId = null, int? areaId = null, int? departamentoId = null)
     {
-        var vacantes = await _vacanteRepo.GetAllAsync();
-        return vacantes.Select(v => new VacanteListDTO
+        // 1. Preparar la consulta con Includes
+        var query = _context.Vacante
+            .Include(v => v.Perfil)
+            .Include(v => v.Urgencia)
+            .AsQueryable();
+
+        // 2. Aplicar Filtros Dinámicos
+        if (perfilId.HasValue)
+            query = query.Where(v => v.PerfilId == perfilId.Value); 
+      
+        // 3. Proyectar al DTO
+        return await query.Select(v => new VacanteListDTO
         {
             VacanteId = v.VacanteId,
             Titulo = v.Titulo,
             Estado = v.Estado,
-
-            // --- CORRECCIÓN 3 (CS0266) ---
             FechaInicio = v.FechaInicio.GetValueOrDefault(),
 
-            // Si el Perfil existe (no es null), usa su nombre. SINO, usa null.
             PerfilNombre = v.Perfil == null ? null : v.Perfil.Nombre,
             UrgenciaNombre = v.Urgencia == null ? null : v.Urgencia.Nombre
-        }).ToList();
+        }).ToListAsync();
     }
 
     public async Task<Vacante> CreateVacanteAsync(VacanteCreateDTO dto)
@@ -119,6 +126,7 @@ public class VacanteService : IVacanteService
         var vacante = await _vacanteRepo.GetByIdAsync(id);
         if (vacante == null) throw new KeyNotFoundException("Vacante no encontrada");
 
+        // Mapear DTO a entidad
         vacante.Titulo = dto.Titulo;
         vacante.PerfilId = dto.PerfilId;
         vacante.CuentaId = dto.CuentaId;
@@ -129,10 +137,18 @@ public class VacanteService : IVacanteService
         vacante.Descripcion = dto.Descripcion;
 
         await _vacanteRepo.UpdateAsync(vacante);
+        await _vacanteRepo.SaveChangesAsync();
     }
 
     public async Task DeleteVacanteAsync(int id)
     {
         await _vacanteRepo.DeleteAsync(id);
+    }
+    public async Task CerrarVacanteAsync(int vacanteId)
+    {
+        var vacante = await _vacanteRepo.GetByIdAsync(vacanteId);
+        if (vacante == null) throw new KeyNotFoundException("Vacante no encontrada");
+        vacante.Estado = "Cerrada"; // O el estado que corresponda
+        await _vacanteRepo.UpdateAsync(vacante);
     }
 }

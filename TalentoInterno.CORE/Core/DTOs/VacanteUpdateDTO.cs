@@ -15,5 +15,6 @@ public class VacanteUpdateDTO
     public int UrgenciaId { get; set; }
     [Required]
     public string Estado { get; set; } = null!;
+
     public string? Descripcion { get; set; }
 }

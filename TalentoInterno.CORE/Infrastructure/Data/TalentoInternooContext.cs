@@ -36,6 +36,8 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<Perfil> Perfil { get; set; }
 
+    public virtual DbSet<Postulacion> Postulacion { get; set; }
+
     public virtual DbSet<Proyecto> Proyecto { get; set; }
 
     public virtual DbSet<Rol> Rol { get; set; }
@@ -52,7 +54,7 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<VacanteSkillReq> VacanteSkillReq { get; set; }
 
-
+ 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -96,6 +98,9 @@ public partial class TalentoInternooContext : DbContext
 
             entity.HasIndex(e => e.Nombre, "UQ__Certific__75E3EFCF7945A255").IsUnique();
 
+            entity.Property(e => e.Descripcion)
+                .HasMaxLength(255)
+                .IsUnicode(false);
             entity.Property(e => e.Nombre)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -116,6 +121,10 @@ public partial class TalentoInternooContext : DbContext
                 .HasMaxLength(120)
                 .IsUnicode(false);
             entity.Property(e => e.DisponibleMovilidad).HasDefaultValue(false);
+            entity.Property(e => e.Dni)
+                .HasMaxLength(20)
+                .IsUnicode(false)
+                .HasColumnName("DNI");
             entity.Property(e => e.Email)
                 .HasMaxLength(150)
                 .IsUnicode(false);
@@ -221,6 +230,30 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Nombre)
                 .HasMaxLength(120)
                 .IsUnicode(false);
+        });
+
+        modelBuilder.Entity<Postulacion>(entity =>
+        {
+            entity.HasKey(e => e.PostulacionId).HasName("PK__Postulac__5F6D89A959D6DEE6");
+
+            entity.Property(e => e.Estado)
+                .HasMaxLength(50)
+                .IsUnicode(false)
+                .HasDefaultValue("En Revision");
+            entity.Property(e => e.FechaPostulacion)
+                .HasDefaultValueSql("(getdate())")
+                .HasColumnType("datetime");
+            entity.Property(e => e.MatchScore).HasColumnType("decimal(5, 2)");
+
+            entity.HasOne(d => d.Colaborador).WithMany(p => p.Postulacion)
+                .HasForeignKey(d => d.ColaboradorId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Postulacion_Colaborador");
+
+            entity.HasOne(d => d.Vacante).WithMany(p => p.Postulacion)
+                .HasForeignKey(d => d.VacanteId)
+                .OnDelete(DeleteBehavior.ClientSetNull)
+                .HasConstraintName("FK_Postulacion_Vacante");
         });
 
         modelBuilder.Entity<Proyecto>(entity =>
@@ -329,11 +362,12 @@ public partial class TalentoInternooContext : DbContext
             entity.Property(e => e.Titulo)
                 .HasMaxLength(150)
                 .IsUnicode(false);
-            entity.Property(e => e.UrgenciaId).HasDefaultValue((byte)2);
+            entity.Property(e => e.UrgenciaId).HasDefaultValue(2);
+
 
             entity.HasOne(d => d.Cuenta).WithMany(p => p.Vacante)
-                .HasForeignKey(d => d.CuentaId)
-                .HasConstraintName("FK_Vacante_Cuenta");
+                .HasForeignKey(d => d.CuentaId);
+      
 
             entity.HasOne(d => d.Perfil).WithMany(p => p.Vacante)
                 .HasForeignKey(d => d.PerfilId)

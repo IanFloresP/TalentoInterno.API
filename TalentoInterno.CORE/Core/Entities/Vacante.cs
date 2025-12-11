@@ -17,7 +17,7 @@ public partial class Vacante
 
     public DateOnly? FechaInicio { get; set; }
 
-    public byte UrgenciaId { get; set; }
+    public int UrgenciaId { get; set; }
 
     public string Estado { get; set; } = null!;
 
@@ -26,6 +26,8 @@ public partial class Vacante
     public virtual Cuenta? Cuenta { get; set; }
 
     public virtual Perfil Perfil { get; set; } = null!;
+
+    public virtual ICollection<Postulacion> Postulacion { get; set; } = new List<Postulacion>();
 
     public virtual Proyecto? Proyecto { get; set; }
 

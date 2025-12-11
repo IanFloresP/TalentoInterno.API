@@ -5,7 +5,7 @@ namespace TalentoInterno.CORE.Core.Entities;
 
 public partial class Urgencia
 {
-    public byte UrgenciaId { get; set; }
+    public int UrgenciaId { get; set; }
 
     public string Nombre { get; set; } = null!;
 

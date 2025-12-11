@@ -8,6 +8,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using TalentoInterno.CORE.Core.Interfaces;
+using TalentoInterno.CORE.Core.Services;
 using TalentoInterno.CORE.Core.Settings;
 
 

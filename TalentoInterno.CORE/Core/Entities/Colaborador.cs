@@ -25,6 +25,8 @@ public partial class Colaborador
 
     public DateOnly? FechaAlta { get; set; }
 
+    public string? Dni { get; set; }
+
     public virtual Area Area { get; set; } = null!;
 
     public virtual ICollection<ColaboradorCertificacion> ColaboradorCertificacion { get; set; } = new List<ColaboradorCertificacion>();
@@ -32,6 +34,8 @@ public partial class Colaborador
     public virtual ICollection<ColaboradorSkill> ColaboradorSkill { get; set; } = new List<ColaboradorSkill>();
 
     public virtual Departamento Departamento { get; set; } = null!;
+
+    public virtual ICollection<Postulacion> Postulacion { get; set; } = new List<Postulacion>();
 
     public virtual Rol Rol { get; set; } = null!;
 

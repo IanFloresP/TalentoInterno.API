@@ -15,13 +15,36 @@ public class AuthService : IAuthService
     private readonly TalentoInternooContext _context;
     private readonly IJwtService _jwtService;
     private readonly ILogger<AuthService> _logger;
-    private readonly IConfiguration _configuration;
+    private readonly string _secretKey;
+    private readonly string _issuer;
+    private readonly string _audience;
+    private readonly double _durationMinutes;
     public AuthService(IJwtService jwtService, ILogger<AuthService> logger, IConfiguration configuration, TalentoInternooContext context)
     {
         _jwtService = jwtService;
         _logger = logger;
-        _configuration = configuration;
         _context = context;
+
+        // --- 2. CARGAMOS Y VALIDAMOS EN EL CONSTRUCTOR ---
+        // Esto se ejecuta una sola vez al iniciarse el servicio.
+
+        _secretKey = configuration["JwtSettings:SecretKey"] ?? "";
+        _issuer = configuration["JwtSettings:Issuer"] ?? "";
+        _audience = configuration["JwtSettings:Audience"] ?? "";
+        _durationMinutes = 1440; // 24 horas
+                       
+        var durationConfig = configuration["JwtSettings:DurationInMinutes"];
+
+        // 3. Si existe y es un número válido, sobrescribimos el 60
+        if (double.TryParse(durationConfig, out double configDuration))
+        {
+            _durationMinutes = configDuration;
+        }
+        // Validamos la clave AQUÍ, al principio.
+        if (_secretKey.Length < 32)
+        {
+            throw new Exception("ERROR CRÍTICO: La 'SecretKey' en appsettings.json debe tener al menos 32 caracteres.");
+        }
     }
     public LoginResponseDTO Login(LoginRequestDTO request)
     {
@@ -63,7 +86,7 @@ public class AuthService : IAuthService
             .Include(u => u.Rol) // Incluir el Rol para el token
             .FirstOrDefaultAsync(u => u.Email == loginDto.Email);
 
-        if (usuario == null) throw new Exception("Usuario no encontrado.");
+        if (usuario == null) throw new Exception("Usuario noo encontrado.");
 
         // 2. Verificar Contraseña (Hash)
         bool passwordValida = BCrypt.Net.BCrypt.Verify(loginDto.Password, usuario.PasswordHash);
@@ -87,8 +110,8 @@ public class AuthService : IAuthService
 
     private string GenerarJwtToken(Entities.Usuario usuario)
     {
-        var secretKey = _configuration["JwtSettings:SecretKey"];
-        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(secretKey!));
+
+        var key = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(_secretKey!));
         var creds = new SigningCredentials(key, SecurityAlgorithms.HmacSha256);
 
         var claims = new List<Claim>
@@ -102,12 +125,12 @@ public class AuthService : IAuthService
         ;
 
         var token = new JwtSecurityToken(
-            issuer: _configuration["JwtSettings:Issuer"],
-            audience: _configuration["JwtSettings:Audience"],
-            claims: claims,
-            expires: DateTime.UtcNow.AddMinutes(double.Parse(_configuration["JwtSettings:DurationInMinutes"]!)),
-            signingCredentials: creds
-        );
+             issuer: _issuer,       // Variable global
+             audience: _audience,   // Variable global
+             claims: claims,
+             expires: DateTime.UtcNow.AddMinutes(_durationMinutes), // Variable global
+             signingCredentials: creds
+         );
 
         return new JwtSecurityTokenHandler().WriteToken(token);
     }

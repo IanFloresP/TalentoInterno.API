@@ -9,5 +9,6 @@ namespace TalentoInterno.CORE.Core.Interfaces
         Task<IEnumerable<Colaborador>> GetAllAsync();
         Task<Colaborador?> GetByIdAsync(int id);
         Task UpdateAsync(Colaborador colaborador);
+        Task<IEnumerable<Colaborador>> GetCandidatosCompletosAsync();
     }
 }

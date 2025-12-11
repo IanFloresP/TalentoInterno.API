@@ -1,11 +1,7 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using TalentoInterno.CORE.Core.Interfaces;
+﻿using Microsoft.AspNetCore.Authorization;
+using Microsoft.AspNetCore.Mvc;
 using TalentoInterno.CORE.Core.DTOs;
-using Microsoft.AspNetCore.Authorization;
-using TalentoInterno.CORE.Core.Entities;
-using TalentoInterno.CORE.Core.Services;
-
-namespace TalentoInterno.API.Controllers;
+using TalentoInterno.CORE.Core.Interfaces;
 
 [ApiController]
 [Route("api/ColaboradorCertificacion")]
@@ -26,16 +22,24 @@ public class ColaboradorCertificacionController : ControllerBase
         return Ok(certs);
     }
 
+    // AHORA RECIBE UNA LISTA
     [HttpPost("{colaboradorId}")]
-    [Authorize(Roles = "Admin, RRHH")] // Solo ellos pueden agregar
-    public async Task<IActionResult> Add(int colaboradorId, [FromBody] ColaboradorCertificacionCreateDto dto)
+    public async Task<IActionResult> AddMany(
+        int colaboradorId,
+        [FromBody] List<ColaboradorCertificacionCreateDto> dtos)
     {
-        await _service.AddCertificacionAsync(colaboradorId, dto);
-        return Ok(new { message = "Certificación agregada exitosamente." });
+        if (dtos == null || dtos.Count == 0)
+            return BadRequest(new { message = "No se enviaron certificaciones." });
+
+        foreach (var dto in dtos)
+        {
+            await _service.AddCertificacionAsync(colaboradorId, dto);
+        }
+
+        return Ok(new { message = "Certificaciones agregadas exitosamente." });
     }
 
     [HttpDelete("{colaboradorId}/{certificacionId}")]
-    [Authorize(Roles = "Admin, RRHH")]
     public async Task<IActionResult> Delete(int colaboradorId, int certificacionId)
     {
         await _service.RemoveCertificacionAsync(colaboradorId, certificacionId);
