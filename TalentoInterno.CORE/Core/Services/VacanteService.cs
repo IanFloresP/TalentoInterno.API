@@ -44,7 +44,7 @@ public class VacanteService : IVacanteService
         return vacante;
     }
 
-    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync(int? perfilId = null, int? areaId = null, int? departamentoId = null)
+    public async Task<IEnumerable<VacanteListDTO>> GetAllVacantesAsync(int? perfilId = null)
     {
         // 1. Preparar la consulta con Includes
         var query = _context.Vacante
