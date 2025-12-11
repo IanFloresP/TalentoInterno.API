@@ -54,10 +54,7 @@ public partial class TalentoInternooContext : DbContext
 
     public virtual DbSet<VacanteSkillReq> VacanteSkillReq { get; set; }
 
-    protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-#warning To protect potentially sensitive information in your connection string, you should move it out of source code. You can avoid scaffolding the connection string by using the Name= syntax to read it from configuration - see https://go.microsoft.com/fwlink/?linkid=2131148. For more guidance on storing connection strings, see https://go.microsoft.com/fwlink/?LinkId=723263.
-        => optionsBuilder.UseSqlServer("Server=DESKTOP-AMFBBFK;Database=TalentoInternoo;Trusted_Connection=True;Encrypt=False");
-
+ 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         modelBuilder.Entity<Area>(entity =>
@@ -367,17 +364,10 @@ public partial class TalentoInternooContext : DbContext
                 .IsUnicode(false);
             entity.Property(e => e.UrgenciaId).HasDefaultValue(2);
 
-            entity.HasOne(d => d.Area).WithMany(p => p.Vacante)
-                .HasForeignKey(d => d.AreaId)
-                .HasConstraintName("FK_Vacante_Area");
 
             entity.HasOne(d => d.Cuenta).WithMany(p => p.Vacante)
-                .HasForeignKey(d => d.CuentaId)
-                .HasConstraintName("FK_Vacante_Cuenta");
-
-            entity.HasOne(d => d.Departamento).WithMany(p => p.Vacante)
-                .HasForeignKey(d => d.DepartamentoId)
-                .HasConstraintName("FK_Vacante_Depto");
+                .HasForeignKey(d => d.CuentaId);
+      
 
             entity.HasOne(d => d.Perfil).WithMany(p => p.Vacante)
                 .HasForeignKey(d => d.PerfilId)

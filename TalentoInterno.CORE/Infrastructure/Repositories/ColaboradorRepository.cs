@@ -30,6 +30,19 @@ public class ColaboradorRepository : IColaboradorRepository
             .ToListAsync();
     }
 
+    public async Task<IEnumerable<Colaborador>> GetCandidatosCompletosAsync()
+    {
+        // Aquí es donde TIENE QUE IR el _context, no en el servicio
+        return await _context.Colaborador
+            .Include(c => c.ColaboradorSkill).ThenInclude(cs => cs.Skill)
+            .Include(c => c.ColaboradorSkill).ThenInclude(cs => cs.Nivel)
+            .Include(c => c.Area)          // <--- Incluimos Área
+            .Include(c => c.Departamento)  // <--- Incluimos Departamento
+            .Include(c => c.Rol)           // <--- Incluimos Rol
+            .Where(c => c.RolId != 3 && c.Activo == true) // Filtramos Admins aquí mismo (mejor rendimiento)
+            .ToListAsync();
+    }
+
     public async Task<Colaborador?> GetByIdAsync(int id)
     {
         return await _context.Colaborador

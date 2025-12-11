@@ -44,29 +44,24 @@ public class ExportacionController : ControllerBase
         _areaService = areaService;
     }
 
-    [HttpGet("ranking/{vacanteId}")]
-    public async Task<IActionResult> ExportarRanking(int vacanteId)
+
+    [HttpGet("{vacanteId}/pdf")]
+    public async Task<IActionResult> ExportarBookPdf(int vacanteId)
     {
-        var data = await _matchingService.GetRankedCandidatesAsync(vacanteId);
-        byte[] fileBytes = await _exportacionService.GenerarRankingExcel(data);
-        return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", $"Ranking_Vacante_{vacanteId}.xlsx");
-    }
+        // 1. Obtener datos y filtrar los Admins si es necesario 
+        // (Tu servicio ya debería traer solo colaboradores activos y no admins, pero por si acaso)
+        var ranking = await _matchingService.GetRankedCandidatesAsync(vacanteId);
 
-    [HttpGet("match/{colaboradorId}/{vacanteId}")]
-    public async Task<IActionResult> ExportarMatch(int colaboradorId, int vacanteId)
-    {
-        var matchData = await _colabSkillService.GetMatchDetailsAsync(colaboradorId, vacanteId);
-        if (matchData == null) return NotFound("Datos del match no encontrados.");
+        // Filtro extra de seguridad: Remover Rol "Admin" si se coló alguno
+        var rankingFiltrado = ranking.Where(c => c.RolNombre != "Admin").ToList();
 
-        var colaboradorEntidad = await _colaboradorService.GetColaboradorByIdAsync(colaboradorId);
-        if (colaboradorEntidad == null) return NotFound("Colaborador no encontrado.");
+        var vacante = await _vacanteService.GetVacanteByIdAsync(vacanteId);
+        string titulo = vacante?.Titulo ?? "Vacante";
 
-        // Mapeo directo porque el servicio ya devuelve un DTO (si usaste la corrección de ColaboradorService)
-        // Si tu servicio devolvía Entidad, aquí mapeas. Asumimos que devuelve DTO:
-        var colaboradorDto = colaboradorEntidad;
+        // 2. Generar el PDF
+        var fileBytes = await _exportacionService.GenerarPdfConsolidadoAsync(rankingFiltrado, titulo);
 
-        byte[] fileBytes = await _exportacionService.GenerarMatchPdf(matchData, colaboradorDto);
-        return File(fileBytes, "application/pdf", $"Match_{colaboradorDto.Nombres}_Vac{vacanteId}.pdf");
+        return File(fileBytes, "application/pdf", $"Book_Candidatos_{DateTime.Now:yyyyMMdd}.pdf");
     }
 
     [HttpGet("kpis")]
@@ -82,50 +77,23 @@ public class ExportacionController : ControllerBase
         ms.Position = 0;
         return File(ms, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", "Reporte_KPIs.xlsx");
     }
-
-    // GET: api/exportacion/brechas?vacanteId=1&areaId=2
-    [HttpGet("brechas")]
-    public async Task<IActionResult> ExportarBrechas([FromQuery] int vacanteId, [FromQuery] int? areaId)
+    // 2. ENDPOINT EXCEL (El reporte consolidado inteligente)
+    [HttpGet("{vacanteId}/brechas")]
+    public async Task<IActionResult> DescargarReporteConsolidado(int vacanteId)
     {
-        // 1. Obtener los datos filtrados (el servicio ya maneja el filtro de área si se lo pasas)
-        var data = await _colabSkillService.GetSkillGapsForVacanteAsync(vacanteId, areaId);
+        // a) Obtenemos los datos calculados
+        var ranking = await _matchingService.GetRankedCandidatesAsync(vacanteId);
 
-        // 2. Obtener información base para los nombres
+        // b) Obtenemos el nombre de la vacante para el título del Excel
         var vacante = await _vacanteService.GetVacanteByIdAsync(vacanteId);
-        string nombreVacante = vacante?.Titulo ?? "Vacante";
+        string titulo = vacante != null ? vacante.Titulo : "Desconocida";
 
-        // --- LÓGICA DE NOMBRES DINÁMICA ---
+        // c) Generamos el archivo usando tu nuevo método "Sábana de Datos"
+        var archivoExcel = await _exportacionService.GenerarReporteConsolidadoAsync(ranking, titulo);
 
-        // Caso Base: Solo Vacante
-        string tituloReporte = nombreVacante;
-        string nombreArchivo = $"Brechas_{nombreVacante}";
-
-        // Caso con Filtro: Vacante + Área
-        if (areaId.HasValue)
-        {
-            // Buscamos el nombre del área (si inyectaste IAreaService, úsalo. Si no, usa el ID)
-            // var area = await _areaService.GetByIdAsync(areaId.Value);
-            // string nombreArea = area?.Nombre ?? "AreaDesconocida";
-
-            // Simulación si no tienes el servicio de área a mano:
-            string nombreArea = $"Area_{areaId}";
-
-            tituloReporte += $" - (Filtrado por: {nombreArea})";
-            nombreArchivo += $"_{nombreArea}";
-        }
-
-        nombreArchivo += ".xlsx"; // Agregar extensión
-
-        // Limpieza de caracteres prohibidos en nombre de archivo
-        foreach (char c in System.IO.Path.GetInvalidFileNameChars())
-        {
-            nombreArchivo = nombreArchivo.Replace(c, '_');
-        }
-
-        // 3. Generar Excel (Llamamos a TU servicio tal cual lo tienes, con 2 argumentos)
-        byte[] fileBytes = await _exportacionService.GenerarBrechasExcel(data, tituloReporte);
-
-        // 4. Devolver archivo con el nombre calculado
-        return File(fileBytes, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nombreArchivo);
+        // d) Devolvemos el archivo al navegador
+        string nombreArchivo = $"Reporte_Talento_{titulo}_{DateTime.Now:yyyyMMdd}.xlsx";
+        return File(archivoExcel, "application/vnd.openxmlformats-officedocument.spreadsheetml.sheet", nombreArchivo);
     }
+
 }

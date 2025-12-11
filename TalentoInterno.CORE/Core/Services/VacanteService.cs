@@ -50,22 +50,12 @@ public class VacanteService : IVacanteService
         var query = _context.Vacante
             .Include(v => v.Perfil)
             .Include(v => v.Urgencia)
-            .Include(v => v.Area)         // Asegúrate de que Vacante tenga estas relaciones
-            .Include(v => v.Departamento) // Si no, haz Scaffold de nuevo
             .AsQueryable();
 
         // 2. Aplicar Filtros Dinámicos
         if (perfilId.HasValue)
-            query = query.Where(v => v.PerfilId == perfilId.Value);
-
-        if (areaId.HasValue)
-            query = query.Where(v => v.AreaId == areaId.Value);
-
-        // --- NUEVO FILTRO POR DEPARTAMENTO ---
-        if (departamentoId.HasValue)
-            query = query.Where(v => v.DepartamentoId == departamentoId.Value);
-        // -------------------------------------
-
+            query = query.Where(v => v.PerfilId == perfilId.Value); 
+      
         // 3. Proyectar al DTO
         return await query.Select(v => new VacanteListDTO
         {
@@ -75,11 +65,7 @@ public class VacanteService : IVacanteService
             FechaInicio = v.FechaInicio.GetValueOrDefault(),
 
             PerfilNombre = v.Perfil == null ? null : v.Perfil.Nombre,
-            UrgenciaNombre = v.Urgencia == null ? null : v.Urgencia.Nombre,
-
-            // Mapear nombres de Área y Depto
-            AreaNombre = v.Area == null ? null : v.Area.Nombre,
-            DepartamentoNombre = v.Departamento == null ? null : v.Departamento.Nombre
+            UrgenciaNombre = v.Urgencia == null ? null : v.Urgencia.Nombre
         }).ToListAsync();
     }
 
@@ -92,12 +78,6 @@ public class VacanteService : IVacanteService
             {
                 Titulo = dto.Titulo,
                 PerfilId = dto.PerfilId,
-
-                // --- NUEVAS ASIGNACIONES ---
-                AreaId = dto.AreaId,
-                DepartamentoId = dto.DepartamentoId,
-                // ---------------------------
-
                 CuentaId = dto.CuentaId,
                 ProyectoId = dto.ProyectoId,
                 FechaInicio = dto.FechaInicio,
@@ -149,12 +129,6 @@ public class VacanteService : IVacanteService
         // Mapear DTO a entidad
         vacante.Titulo = dto.Titulo;
         vacante.PerfilId = dto.PerfilId;
-
-        // --- NUEVAS ASIGNACIONES ---
-        vacante.AreaId = dto.AreaId;
-        vacante.DepartamentoId = dto.DepartamentoId;
-        // ---------------------------
-
         vacante.CuentaId = dto.CuentaId;
         vacante.ProyectoId = dto.ProyectoId;
         vacante.FechaInicio = dto.FechaInicio;

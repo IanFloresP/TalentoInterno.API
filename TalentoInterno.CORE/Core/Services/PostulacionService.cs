@@ -131,12 +131,7 @@ public class PostulacionService : IPostulacionService
                 // ✅ B) Marcar colaborador como NO disponible para movilidad
                 colaborador.DisponibleMovilidad = false;
 
-                // ✅ C) Actualizar Area/Departamento si la vacante lo define
-                if (vacante.AreaId.HasValue)
-                    colaborador.AreaId = vacante.AreaId.Value;
-
-                if (vacante.DepartamentoId.HasValue)
-                    colaborador.DepartamentoId = vacante.DepartamentoId.Value;
+             
 
                 // ✅ D) Opcional: activo true (si quieres forzarlo)
                 if (colaborador.Activo == null)

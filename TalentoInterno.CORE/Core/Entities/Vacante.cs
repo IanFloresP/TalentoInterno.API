@@ -23,15 +23,7 @@ public partial class Vacante
 
     public string? Descripcion { get; set; }
 
-    public int? AreaId { get; set; }
-
-    public int? DepartamentoId { get; set; }
-
-    public virtual Area? Area { get; set; }
-
     public virtual Cuenta? Cuenta { get; set; }
-
-    public virtual Departamento? Departamento { get; set; }
 
     public virtual Perfil Perfil { get; set; } = null!;
 
